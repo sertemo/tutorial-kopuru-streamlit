@@ -24,23 +24,23 @@
 #### Configuración inicial: Entorno virtual y git
 - Descargar e instalar git [enlace](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - Instalar **poetry**
-    pip install poetry
+    `pip install poetry`
 - Iniciar poetry
-    poetry init
+    `poetry init`
 - Configuración in-project
-    poetry config virtualenvs.in-project true
+    `poetry config virtualenvs.in-project true`
 - Instalar el entorno virtual
-    poetry install
+    `poetry install`
 - Añadir librerías necesarias
-    poetry add streamlit keras ...
+    `poetry add streamlit keras ...`
 - Activar entorno virtual
-    poetry shell
+    `poetry shell`
 
 - Inicializar **git**
-    git init
+    `git init`
 - Hacer *commits* para guardar nuestro avance
-    git add .
-    git commit -m "Inicializado poetry y git"
+    `git add .`
+    `git commit -m "Inicializado poetry y git"`
 
 #### Estructura del proyecto. Jerarquía de archivos
 
@@ -75,7 +75,7 @@
 - Creación del código de la aplicación e integración del modelo entrenado
 - Archivo *main.py*
 - Correr la aplicación en local
-    streamlit run main.py
+    `streamlit run main.py`
 - Validaciones varias (imagen del usuario)
 - Algunos trucos para *beautify* la aplicación inyectando HTML
 
@@ -83,11 +83,11 @@
 - Registrarse en GitHub
 - Crear un repositorio
 - Creación del archivo requirements.txt
-    poetry export -f requirements.txt --output requirements.txt
+    `poetry export -f requirements.txt --output requirements.txt`
 - Commits y push
-    git add .
-    git commit -m "aplicacion terminada lista para desplegar"
-    git remote add origin git@github.com:<usuario>/<nombre-aplicacion>.git
+    `git add .`
+    `git commit -m "aplicacion terminada lista para desplegar"`
+    `git remote add origin git@github.com:<usuario>/<nombre-aplicacion>.git`
 - Crear nueva app en Streamlit (Deploy an app)
 
 
