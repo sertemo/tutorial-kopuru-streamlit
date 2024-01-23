@@ -1,4 +1,4 @@
-# Artículo para el Blog de Kopuru
+# Artículo para el Blog de Kopuru 🧠
 
 ## Posible título
 - Desarrollando y desplegando un modelo de reconocimiento de dígitos con Streamlit
@@ -11,51 +11,51 @@
 #### Descripción del proyecto
 - Entrenaremos un modelo convolucional (ConvNet) sencillo capaz de reconocer dígitos sencillos del 0-9 en imágenes de 28x28 píxeles. Se usará la API de **Keras**, el dataset **MNIST** y **Streamlit** como plataforma para evaluar imágenes generadas por el usuario.
 - Paquetes, módulos o programas que se utilizarán:
-    - **poetry** como administrador de dependencias y entorno virtual. [ver doc](https://python-poetry.org/docs/basic-usage/)
+    - **conda** para entorno virtual. [ver doc](https://python-poetry.org/docs/basic-usage/)
     - **git** como administrador de versiones. [ver doc](https://git-scm.com/docs)
-    - **Keras** como librería para deep learning. [ver doc](https://keras.io/about/)
+    - **Tensorflow** y **Keras** como librería para deep learning. [ver doc](https://keras.io/about/)
     - **Vscode** como editor de código. [enlace](https://code.visualstudio.com/)
-    - **Python** en su versión 3.11. [enlace](https://www.python.org/downloads/)
+    - **Python** en su versión 3.9.6 [enlace](https://www.python.org/downloads/)
     - **Windows 10**
     - **Streamlit** como framework de aplicación web. [ver doc](https://docs.streamlit.io/)
+    - **Streamlit Community Cloud** Para el despliegue.
 
 ### Parte 1: Preparación y entrenamiento del modelo
 
 #### Configuración inicial: Entorno virtual y git
 - Descargar e instalar git: [enlace](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- Instalar **poetry**
-```sh
-$ pip install poetry
-```
+- Instalar **conda** si no está instalado: [enlace](https://conda.io/projects/conda/en/latest/user-guide/install/windows.html)
 
-- Iniciar poetry
+- Crear un entorno virtual llamado por ejemplo **tensorflow**
 ```sh
-$ poetry init
+$ conda create --name tensorflow python=3.9
 ```
-
-- Configuración in-project
+- Ver entornos virtuales disponibles
 ```sh
-$ poetry config virtualenvs.in-project true
+$ conda info --envs
 ```
-
-- Instalar el entorno virtual
+- Activar el entorno virtual
 ```sh
-$ poetry install
+$ conda activate tensorflow
 ```
-
 - Añadir librerías necesarias
 ```sh
-$ poetry add streamlit keras ...
+$ pip install tensorflow streamlit keras 
 ```
-
-- Activar entorno virtual
+- Ver librerías instaladas
 ```sh
-$ poetry shell
+$ conda list 
 ```
-
-- Inicializar **git**
+- Crear proyecto en VsCode
+- Seleccionar Interprete del proyecto (Ctrl+shift+P)
+- Inicializar **git** y renombrar rama principal a **main**.
 ```sh
 $ git init
+$ git branch -m main
+```
+- Opcional pero recomendable: cambiar la configuración para que siempre se inicialice como main y no master
+```sh
+$ git config --global init.defaultBranch main
 ```
 
 - Hacer *commits* para guardar nuestro avance
@@ -63,7 +63,6 @@ $ git init
 $ git add .
 $ git commit -m "Inicializado poetry y git"
 ```
-
 
 #### Estructura del proyecto. Jerarquía de archivos
 
@@ -74,7 +73,7 @@ $ git commit -m "Inicializado poetry y git"
 #### Construcción del modelo ConvNet 
 (recomendado en [Google Colab](https://colab.research.google.com/?hl=es))
 - Arquitectura elegida
-- Functional API
+- Functional API de keras
 - Loss, métricas, compilación y entrenamiento
 - Evaluación de la precisión
 - Guardado del modelo en disco
@@ -96,13 +95,14 @@ $ git commit -m "Inicializado poetry y git"
 
 #### Integración del modelo en el código
 - Creación del código de la aplicación e integración del modelo entrenado
+- App multi-página
 - Archivo *main.py*
-- Ejecutar la aplicación en local
+- Ejecutar la aplicación en local e ir viendo cambios
 ```sh
 $ streamlit run main.py
 ```
 
-- Validaciones varias (imagen del usuario)
+- Validaciones varias (input del usuario)
 - Algunos trucos para *beautify* la aplicación inyectando HTML
 
 #### Despliegue con GitHub
@@ -110,7 +110,7 @@ $ streamlit run main.py
 - Crear un repositorio
 - Creación del archivo requirements.txt
 ```sh
-$ poetry export -f requirements.txt --output requirements.txt
+$ conda list -e | grep -v "^#" | awk -F'=' '{print $1 "==" $2}' > requirements.txt
 ```
 
 - Commits y push
@@ -118,9 +118,11 @@ $ poetry export -f requirements.txt --output requirements.txt
 git add .
 git commit -m "aplicacion terminada lista para desplegar"
 git remote add origin git@github.com:<usuario>/<nombre-aplicacion>.git
+git push -u origin main
 ```
 
 - Crear nueva app en Streamlit (Deploy an app)
+    - Seleccionar el repositorio
 
 
 
