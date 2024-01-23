@@ -1,4 +1,4 @@
-# Artículo para el Blog de Kopuru 🧠
+# Artículo/Tutorial para el Blog de Kopuru 🧠
 
 ## Posible título
 - Desarrollando y desplegando un modelo de reconocimiento de dígitos con Streamlit
@@ -18,7 +18,7 @@
     - **Python** en su versión 3.9.6 [enlace](https://www.python.org/downloads/)
     - **Windows 10**
     - **Streamlit** como framework de aplicación web. [ver doc](https://docs.streamlit.io/)
-    - **Streamlit Community Cloud** Para el despliegue.
+    - **Streamlit Community Cloud** Para el despliegue. [enlace](https://streamlit.io/cloud)
 
 ### Parte 1: Preparación y entrenamiento del modelo
 
