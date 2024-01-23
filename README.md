@@ -61,7 +61,7 @@ $ git config --global init.defaultBranch main
 - Hacer *commits* para guardar nuestro avance
 ```sh
 $ git add .
-$ git commit -m "Inicializado poetry y git"
+$ git commit -m "Inicializado entorno virtual y git"
 ```
 
 #### Estructura del proyecto. Jerarquía de archivos
