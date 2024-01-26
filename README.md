@@ -15,7 +15,7 @@
     - **git** como administrador de versiones. [ver doc](https://git-scm.com/docs)
     - **Tensorflow** y **Keras** como librería para deep learning. [ver doc](https://keras.io/about/)
     - **Vscode** como editor de código. [enlace](https://code.visualstudio.com/)
-    - **Python** en su versión 3.9.6 [enlace](https://www.python.org/downloads/)
+    - **Python** en su versión 3.9.6.
     - **Windows 10**
     - **Streamlit** como framework de aplicación web. [ver doc](https://docs.streamlit.io/)
     - **Streamlit Community Cloud** Para el despliegue. [enlace](https://streamlit.io/cloud)
