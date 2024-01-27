@@ -15,5 +15,29 @@
 """Script que recoge el código relacionado con la visualización de las
 características del modelo entrenado"""
 
-# TODO Matriz zde Confusión
-# TODO Parámetros del modelo
+import streamlit as st
+
+from streamlit_func import imagen_con_enlace
+
+def main() -> None:
+    """Entry point de la app"""
+
+    # Configuración de la app
+    st.set_page_config(
+        page_title=f"Reconocimiento de dígitos",
+        page_icon="👁️", 
+        layout="wide",
+        initial_sidebar_state="auto",
+    )
+
+    with st.sidebar:
+        # Imagen de la app
+        #st.image('img/logo_app.png')
+        imagen_con_enlace('https://i.imgur.com/4f38x2v.png', 'https://kopuru.com/', centrar=True)
+        st.caption('© 2024 STM')
+        
+    # TODO Matriz zde Confusión
+    # TODO Parámetros del modelo
+        
+if __name__ == '__main__':
+    main()
