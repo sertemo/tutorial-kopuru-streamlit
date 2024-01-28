@@ -14,6 +14,8 @@
 
 import streamlit as st
 
+DEFAULT_COLOR = '#8398a0'
+
 def imagen_con_enlace(url_imagen, url_enlace, 
                     alt_text="Imagen", 
                     max_width:int=100, 
@@ -38,3 +40,37 @@ def imagen_con_enlace(url_imagen, url_enlace,
                     </div>
                     """
     st.markdown(html, unsafe_allow_html=True)
+
+def texto(texto:str, /, *, 
+            font_size:int=10, 
+            color:str=DEFAULT_COLOR, 
+            font_family:str="Helvetica", 
+            formato:str="", 
+            centrar:bool=False) -> None:
+    """ Función para personalizar el texto con HTML"""
+    if formato:
+        texto = f"<{formato}>{texto}</{formato}>"
+    if centrar:
+        texto = f"""
+                    <div style='text-align: center'>
+                        {texto}
+                    </div>
+                    """
+    texto_formateado = f"""<div style='font-size: {font_size}px; color: {color}; font-family: {font_family}'>{texto}</div>"""
+    st.markdown(texto_formateado, unsafe_allow_html=True)
+
+def añadir_salto(num_saltos:int=1) -> None:
+    """Añade <br> en forma de HTML para agregar espacio
+    """
+    saltos = f"{num_saltos * '<br>'}"
+    st.markdown(saltos, unsafe_allow_html=True)
+
+def show_sidebar() -> None:
+    """Función para personalizar la sidebar"""
+    with st.sidebar:
+        # Imagen de la app
+        #st.image('img/logo_app.png')
+        imagen_con_enlace('https://i.imgur.com/4f38x2v.png', 'https://kopuru.com/', centrar=True)
+        # Año autor y copyright
+        añadir_salto()
+        texto('© 2024 STM', centrar=True)

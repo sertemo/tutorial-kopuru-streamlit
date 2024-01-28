@@ -17,7 +17,7 @@ características del modelo entrenado"""
 
 import streamlit as st
 
-from streamlit_func import imagen_con_enlace
+from streamlit_func import show_sidebar
 
 def main() -> None:
     """Entry point de la app"""
@@ -30,11 +30,7 @@ def main() -> None:
         initial_sidebar_state="auto",
     )
 
-    with st.sidebar:
-        # Imagen de la app
-        #st.image('img/logo_app.png')
-        imagen_con_enlace('https://i.imgur.com/4f38x2v.png', 'https://kopuru.com/', centrar=True)
-        st.caption('© 2024 STM')
+    show_sidebar()
         
     # TODO Matriz zde Confusión
     # TODO Parámetros del modelo
