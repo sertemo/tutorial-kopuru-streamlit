@@ -120,6 +120,52 @@ def predict(img_processed:np.ndarray) -> Tuple[int, float]:
     conf = probs.max()
     return pred, conf
 
+def reset_predictions() -> None:
+    """Resetea algunas variables de sesión cuando se cambia de imagen cargada
+    o se elimina la imagen cargada"""
+    if 'ultima_prediccion' in st.session_state:
+        del st.session_state['ultima_prediccion']
+
+# Validaciones
+def pred_already_saved(filename:str) -> bool:
+    """Comprueba si el nombre de archivo está guardado ya en el historial.
+    Devuelve True si ya ha sido guardado y False en caso contrario
+
+    Parameters
+    ----------
+    filename : str
+        _description_
+
+    Returns
+    -------
+    bool
+        _description_
+    """
+    return any(filename in pred.values() for pred in st.session_state['historial'])
+
+def is_valid_image(img_array:np.ndarray) -> Tuple[bool, str]:
+    """Realiza validaciones al array de la imagen.
+    Devuelve una tupla con un bool y un mensaje de error
+
+    Parameters
+    ----------
+    img_array : np.ndarray
+        La imagen en formato array de numpy
+
+    Returns
+    -------
+    Tuple[bool, str]
+        True, "" si la imagen es válida
+        False, "mensaje de error" si la imagen no es válida
+    """
+    # Si hay más de un 95% de negro o menos de un 10% consideramos que el número no puede ser válido
+    if (np.count_nonzero(img_array == 0) > 0.95 * img_array.size) or (np.count_nonzero(img_array == 0) < 0.10 * img_array.size):
+        return False, "La imagen no es válida. Carga una imagen con un dígito en blanco sobre fondo negro."
+    # Comprobamos la shape de la imagen, que debe ser 28 x 28 píxeles
+    if img_array.shape != (28, 28):
+        return False, f"La dimensión de la imagen debe ser (28, 28). La imagen cargada es {img_array.shape}."
+    return True, ""
+
 
 def main() -> None:
     """Entry point de la app"""
@@ -137,10 +183,11 @@ def main() -> None:
     st.title('Reconocimiento de dígitos')
     st.subheader('Una App para Kopuru')
     st.write('''Con esta app serás capaz de evaluar un modelo convolucional entrenado 
-                con el dataset [MNIST](https://www.kaggle.com/datasets/hojjatk/mnist-dataset).
-                Dibuja un dígito en color blanco sobre fondo negro en una imagen de 28x28 píxeles
-                y súbela. Pulsa sobre el botón **predecir** y comprueba si el modelo ha sido
-                capaz de averiguar el dígito que habías dibujado.''')
+                con el dataset [MNIST](https://www.kaggle.com/datasets/hojjatk/mnist-dataset).<br>
+                Sube una imagen monocanal (escala de grises) de dimensiones 28x28 píxeles con
+                un dígito dibujado en color blanco sobre fondo negro.<br>
+                Pulsa sobre el botón **predecir** y comprueba si el modelo ha sido
+                capaz de averiguar el dígito que habías dibujado.''', unsafe_allow_html=True)
     
     # Inicializamos variables de sesión para llevar un registro de las predicciones
     if st.session_state.get('historial') is None:
@@ -148,21 +195,29 @@ def main() -> None:
     # Flag para saber si tenemos una imagen cargada y validada
     st.session_state['imagen_cargada_y_validada'] = False
 
-    tab_cargar_imagen, tab_ver_digito, tab_predecir, tab_evaluar, tab_historial = st.tabs(['Cargar imagen', 'Ver dígito', 
-                                                                            'Predecir', 'Evaluar', 'Ver historial'])
+    tab_cargar_imagen, tab_ver_digito, tab_predecir, \
+        tab_evaluar, tab_historial = st.tabs(['Cargar imagen', 'Ver dígito', 
+                                        'Predecir', 'Evaluar', 'Ver historial'])
 
     with tab_cargar_imagen:
         st.write('''Carga tu imagen con el dígito dibujado. 
             Recuerda que debe ser una imagen de 28x28 píxeles.<br>El dígito debe estar
             dibujado en blanco sobre color negro.''', unsafe_allow_html=True)
         
-        imagen_bruta = st.file_uploader('Sube tu dígito', type=["png","tif","jpg","bmp","jpeg"])
+        imagen_bruta = st.file_uploader('Sube tu dígito', type=["png","tif","jpg","bmp","jpeg"], on_change=reset_predictions)
 
-        # TODO validaciones
-        if imagen_bruta is not None: #TODO and validaciones
+        if imagen_bruta is not None:
             # Utilizamos el wrapper BytesIO para cargar bytes en la calse Image de PIL
             # Transformamos la imagen en array de numpy
             img_array = np.array(Image.open(BytesIO(imagen_bruta.read())))
+            # Realizamos validaciones sobre la imagen
+            valid_img, error_msg = is_valid_image(img_array)
+            # Si la imagen no es válida mostramos mensaje de error y paramos la ejecución de la app
+            # Forzamos al usuario a cargar una nueva imagen válida
+            if not valid_img:
+                st.error(error_msg)
+                st.stop() # Lo que viene después del stop no se ejecutará.
+
             st.session_state['imagen_cargada_y_validada'] = imagen_bruta.name    
             
     with tab_ver_digito:
@@ -178,7 +233,7 @@ def main() -> None:
     with tab_predecir:
         # Comprobamos si se ha lanzado una predicción y por tanto está almacenada en sesión.
         # Si tenemos una predicción la mostramos
-        if (last_pred:=st.session_state.get('last_predict')) is not None:
+        if (last_pred:=st.session_state.get('ultima_prediccion')) is not None:
             pred = last_pred['pred']
             conf = last_pred['conf']
             st.metric("Predicción del modelo", value=pred, delta=f"{'-' if conf < 0.7 else ''}{conf:.2%}")
@@ -196,8 +251,8 @@ def main() -> None:
                         time.sleep(1)
                     st.metric("Predicción del modelo", value=pred, delta=f"{'-' if conf < 0.7 else ''}{conf:.2%}")
                     # Guardamos en sesión
-                    st.session_state['last_predict'] = {
-                        'pred': pred,
+                    st.session_state['ultima_prediccion'] = {
+                        'pred': int(pred),
                         'conf': conf,
                         'archivo': nombre_imagen,
                     }
@@ -207,17 +262,21 @@ def main() -> None:
 
     with tab_evaluar:
         # Verificamos si hay una predicción lanzada y guardada en sesión
-        if (last_pred:=st.session_state.get('last_predict')) is not None:
+        if (last_pred:=st.session_state.get('ultima_prediccion')) is not None:
             # Posibilidad de contrastar con la realidad para almacenar porcentaje de aciertos
             st.subheader("¿ Ha acertado el modelo ?")
             digit = st.number_input("Marca el dígito que habías dibujado", min_value=0, max_value=9)
             guardar_pred = st.button("Guardar evaluación", help='Añade la evaluación al historial')
             if guardar_pred:
-                # TODO No guardar si nombre de archivo existe en historial
-                # Añadimos a last_predict la evaluación del usuario
-                last_pred['real'] = digit
-                # Añadimos los valores al historial
-                st.session_state['historial'].append(last_pred)
+                # Comprobamos si ya está ese archivo guardado
+                if not pred_already_saved(imagen_bruta.name):
+                    # Añadimos a ultima_prediccion la evaluación del usuario
+                    last_pred['real'] = digit
+                    # Añadimos los valores al historial
+                    st.session_state['historial'].append(last_pred)
+                else:
+                    # Mostramos advertencia
+                    st.info("La evaluación ya se ha guardado.")
         else:
             st.info("Lanza una predicción para evaluar.")
 
