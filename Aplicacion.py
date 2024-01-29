@@ -13,13 +13,16 @@
 # limitations under the License.
 
 # Librerías internas
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
+import pytz
 import time
 from typing import Tuple
 # Librerías de terceros
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from PIL import Image
 import streamlit as st
 from tensorflow import keras
@@ -28,6 +31,8 @@ from streamlit_func import show_sidebar
 
 # Constantes
 MODEL_PATH = Path('models')
+DAY_HOUR_FORMAT = """%d/%m/%y\n%H:%M"""
+DAY_FORMAT = "%d/%m/%y"
 
 # Funciones auxiliares
 @st.cache_resource()
@@ -125,6 +130,22 @@ def reset_predictions() -> None:
     o se elimina la imagen cargada"""
     if 'ultima_prediccion' in st.session_state:
         del st.session_state['ultima_prediccion']
+
+def get_timestamp(formato:str) -> str:
+    """Recibe un formato de timestamp en string y devuelve
+    en ese formato el momento del día actual
+
+    Parameters
+    ----------
+    formato : str
+        _description_
+
+    Returns
+    -------
+    str
+        _description_
+    """
+    return datetime.strftime(datetime.now(tz=pytz.timezone('Europe/Madrid')),format=formato)
 
 # Validaciones
 def pred_already_saved(filename:str) -> bool:
@@ -272,6 +293,8 @@ def main() -> None:
                 if not pred_already_saved(imagen_bruta.name):
                     # Añadimos a ultima_prediccion la evaluación del usuario
                     last_pred['real'] = digit
+                    # Añadimos la hora
+                    last_pred['fecha'] = get_timestamp(DAY_HOUR_FORMAT)
                     # Añadimos los valores al historial
                     st.session_state['historial'].append(last_pred)
                 else:
@@ -281,10 +304,25 @@ def main() -> None:
             st.info("Lanza una predicción para evaluar.")
 
     with tab_historial:
-        # TODO Mostrar acumulado de las predicciones: +1 acierto -1 fallo
-        # TODO Mostrar porcentaje de aciertos
-        pass
+        # Creamos un dataframe con el historial guardado en sesión
+        df = pd.DataFrame(st.session_state.get('historial'))
+        # Sacamos una lista con los aciertos. Si ha acertado será 1 si no será 0
+        aciertos = [float(d['pred'] == d['real']) for d in st.session_state.get('historial')]
+        # Creamos el array de la suma acumulada
+        aciertos = np.cumsum(aciertos)
+        # Sacamos fechas
+        fechas = [d['fecha'] for d in st.session_state.get('historial')]        
 
+        plt.figure(figsize=(10, 6))
+        plt.plot(np.arange(len(aciertos)), aciertos, label='acumulado aciertos')
+        plt.xlabel('Tiempo')
+        plt.title('Evolución de aciertos a lo Largo del Tiempo')
+        plt.xticks(ticks=range(len(fechas)), labels=fechas)
+        plt.yticks(ticks=range(len(aciertos)))
+        st.pyplot(plt)
+
+        st.dataframe(df, use_container_width=True, hide_index=True, column_order=['archivo', 'pred', 'conf', 'real', 'fecha'])
+        # TODO Mostrar porcentaje de aciertos
         
 
     st.session_state
