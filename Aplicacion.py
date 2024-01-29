@@ -217,8 +217,8 @@ def main() -> None:
     st.session_state['imagen_cargada_y_validada'] = False
 
     tab_cargar_imagen, tab_ver_digito, tab_predecir, \
-        tab_evaluar, tab_historial = st.tabs(['Cargar imagen', 'Ver dígito', 
-                                        'Predecir', 'Evaluar', 'Ver historial'])
+        tab_evaluar, tab_estadisticas = st.tabs(['Cargar imagen', 'Ver dígito', 
+                                        'Predecir', 'Evaluar', 'Ver estadísticas'])
 
     with tab_cargar_imagen:
         st.write('''Carga tu imagen con el dígito dibujado. 
@@ -303,29 +303,36 @@ def main() -> None:
         else:
             st.info("Lanza una predicción para evaluar.")
 
-    with tab_historial:
+    with tab_estadisticas:
         # Creamos un dataframe con el historial guardado en sesión
         df = pd.DataFrame(st.session_state.get('historial'))
-        # Sacamos una lista con los aciertos. Si ha acertado será 1 si no será 0
-        aciertos = [float(d['pred'] == d['real']) for d in st.session_state.get('historial')]
-        # Creamos el array de la suma acumulada
-        aciertos = np.cumsum(aciertos)
-        # Sacamos fechas
-        fechas = [d['fecha'] for d in st.session_state.get('historial')]        
-
+        # Sacamos los aciertos comparando la variable pred y real
+        df['aciertos'] = df['pred'] == df['real']
+        # Ploteamos el acumulado de aciertos para representar la curva de acumulados
         plt.figure(figsize=(10, 6))
-        plt.plot(np.arange(len(aciertos)), aciertos, label='acumulado aciertos')
+        plt.plot(np.arange(len(df)), np.cumsum(df['aciertos']), label='acumulado aciertos')
         plt.xlabel('Tiempo')
+        plt.ylabel('Aciertos acumulados')
         plt.title('Evolución de aciertos a lo Largo del Tiempo')
-        plt.xticks(ticks=range(len(fechas)), labels=fechas)
-        plt.yticks(ticks=range(len(aciertos)))
+        plt.xticks(ticks=range(len(df)), labels=df['fecha'])
+        plt.yticks(ticks=range(len(df)))
+        plt.tight_layout()
         st.pyplot(plt)
-
+        # Mostramos histograma con porcentaje de aciertos por dígito
+        fig, ax = plt.subplots()
+        # Agrupamos por dígito real y calculamos la media de aciertos por dicho dígito
+        precision_por_digito = df.groupby('real')['aciertos'].mean()
+        # Representamos en un gráfico de barras
+        ax.bar(precision_por_digito.index, precision_por_digito.values)
+        ax.set_xlabel('Dígitos')
+        ax.set_ylabel('% de Aciertos')
+        ax.set_title('Porcentaje de Aciertos por Dígito')
+        ax.set_xticks(range(0, 10))
+        st.pyplot(fig)
+        # Mostramos el dataframe
         st.dataframe(df, use_container_width=True, hide_index=True, column_order=['archivo', 'pred', 'conf', 'real', 'fecha'])
-        # TODO Mostrar porcentaje de aciertos
         
-
-    st.session_state
+        
 
 if __name__ == '__main__':
     main()
