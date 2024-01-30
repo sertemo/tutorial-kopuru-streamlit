@@ -12,75 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Script con la aplicación principal"""
+
 # Librerías internas
 from datetime import datetime
 from io import BytesIO
-from pathlib import Path
 import pytz
 import time
 from typing import Tuple
 # Librerías de terceros
+from matplotlib.ticker import MaxNLocator
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from PIL import Image
 import streamlit as st
-from tensorflow import keras
 # Librerías propias del proyecto
-from streamlit_func import show_sidebar
+from models.convnet_model import load_model
+from streamlit_func import show_sidebar, config_page
 
-# Constantes
-MODEL_PATH = Path('models')
+# Constantes #
 DAY_HOUR_FORMAT = """%d/%m/%y\n%H:%M"""
 DAY_FORMAT = "%d/%m/%y"
+COLOR_BLUE = '#213f99'
 
-# Funciones auxiliares
-@st.cache_resource()
-def load_model() -> keras.Model:
-    """Devuelve el modelo con los weights cargados
-
-    Parameters
-    ----------
-    model : keras.Model
-        Modelo virgen
-    weights_file : str
-        Archivo *.h5 donde están los weights
-
-    Returns
-    -------
-    keras.Model
-        _description_
-    """
-    # Construimos el modelo
-    model = build_model()
-    weights = MODEL_PATH / 'convnet_mnist_104k_weights.h5'
-    model.load_weights(weights, by_name=True)
-    # Cargamos los weights y devolvemos
-    return model
-
-def build_model() -> keras.Model:
-    """Reconstruye el modelo y lo devuelve para posteriormente ser cargado
-    con los weights del modelo entrenado. Lo tenemos que hacer asi
-    debido a incompatibilidades al guardado el modelo original:
-
-    https://github.com/keras-team/keras-core/issues/855
-
-    Returns
-    -------
-    keras.Model
-        Devuelve el modelo con los weights sin entrenar
-    """
-    inputs = keras.Input(shape=(28, 28, 1))
-    x = keras.layers.Conv2D(filters=32, kernel_size=3, activation="relu")(inputs)
-    x = keras.layers.MaxPooling2D(pool_size=2)(x)
-    x = keras.layers.Conv2D(filters=64, kernel_size=3, activation="relu")(x)
-    x = keras.layers.MaxPooling2D(pool_size=2)(x)
-    x = keras.layers.Conv2D(filters=128, kernel_size=3, activation="relu")(x)
-    x = keras.layers.Flatten()(x)
-    outputs = keras.layers.Dense(10, activation="softmax")(x)
-    model = keras.Model(inputs=inputs, outputs=outputs)
-    return model
-
+# Funciones auxiliares #
 def process_image(img_array:np.ndarray) -> np.ndarray:
     """Preprocesa la imagen cargada para adecuarla a los requerimientos
     del modelo
@@ -138,16 +94,18 @@ def get_timestamp(formato:str) -> str:
     Parameters
     ----------
     formato : str
-        _description_
+        Formato de tipo datetime para mostrar
+        Por ejemplo: %d/%m/%y
 
     Returns
     -------
     str
-        _description_
+        Devuelve momento actual del día
+        en el formato especificado
     """
     return datetime.strftime(datetime.now(tz=pytz.timezone('Europe/Madrid')),format=formato)
 
-# Validaciones
+# Validaciones #
 def pred_already_saved(filename:str) -> bool:
     """Comprueba si el nombre de archivo está guardado ya en el historial.
     Devuelve True si ya ha sido guardado y False en caso contrario
@@ -160,7 +118,8 @@ def pred_already_saved(filename:str) -> bool:
     Returns
     -------
     bool
-        _description_
+        True si el nombre del archivo está en historial
+        False en caso contrario
     """
     return any(filename in pred.values() for pred in st.session_state['historial'])
 
@@ -187,20 +146,14 @@ def is_valid_image(img_array:np.ndarray) -> Tuple[bool, str]:
         return False, f"La dimensión de la imagen debe ser (28, 28). La imagen cargada es {img_array.shape}."
     return True, ""
 
-
 def main() -> None:
     """Entry point de la app"""
 
     # Configuración de la app
-    st.set_page_config(
-        page_title=f"Reconocimiento de dígitos",
-        page_icon="👁️", 
-        layout="centered",
-        initial_sidebar_state="auto",
-    )
+    config_page()
     # Mostramos la Sidebar que hemos configurado en streamlit_func
     show_sidebar()
-
+    # Título y descripción de la app
     st.title('Reconocimiento de dígitos')
     st.subheader('Una App para Kopuru')
     st.write('''Con esta app serás capaz de evaluar un modelo convolucional entrenado 
@@ -215,18 +168,20 @@ def main() -> None:
         st.session_state['historial'] = []
     # Flag para saber si tenemos una imagen cargada y validada
     st.session_state['imagen_cargada_y_validada'] = False
-
+    # Definimos las 5 tabs que tendrá nuestra app
     tab_cargar_imagen, tab_ver_digito, tab_predecir, \
         tab_evaluar, tab_estadisticas = st.tabs(['Cargar imagen', 'Ver dígito', 
                                         'Predecir', 'Evaluar', 'Ver estadísticas'])
-
+    ################
+    ## TAB Cargar ##
+    ################
     with tab_cargar_imagen:
         st.write('''Carga tu imagen con el dígito dibujado. 
             Recuerda que debe ser una imagen de 28x28 píxeles.<br>El dígito debe estar
             dibujado en blanco sobre color negro.''', unsafe_allow_html=True)
         
         imagen_bruta = st.file_uploader('Sube tu dígito', type=["png","tif","jpg","bmp","jpeg"], on_change=reset_predictions)
-
+        # Si hay imagen cargada, convertimos en array la imagen y realizamos las validaciones de la imagen
         if imagen_bruta is not None:
             # Utilizamos el wrapper BytesIO para cargar bytes en la calse Image de PIL
             # Transformamos la imagen en array de numpy
@@ -238,9 +193,14 @@ def main() -> None:
             if not valid_img:
                 st.error(error_msg)
                 st.stop() # Lo que viene después del stop no se ejecutará.
+            # Si la imagen es válida guardamos en sesión el nombre del archivo y mostramos un mensaje de éxito
+            st.session_state['imagen_cargada_y_validada'] = imagen_bruta.name
+            # Este mensaje solo se mostrará si hay una imagen cargada y si la imagen está validada
+            st.success('Imagen cargada correctamente.')
 
-            st.session_state['imagen_cargada_y_validada'] = imagen_bruta.name    
-            
+    ################
+    ## TAB Dígito ##
+    ################        
     with tab_ver_digito:
         # Verificamos que tengamos una imagen cargada y validada en sesión
         if st.session_state.get('imagen_cargada_y_validada'):
@@ -249,28 +209,37 @@ def main() -> None:
             ax.axis('off')
             st.pyplot(fig)
         else:
-            st.info("Carga una imagen para visualizar.")
+            st.info('Carga una imagen para visualizar.')
 
+    ##################
+    ## TAB Predecir ##
+    ##################
     with tab_predecir:
         # Comprobamos si se ha lanzado una predicción y por tanto está almacenada en sesión.
         # Si tenemos una predicción la mostramos
         if (last_pred:=st.session_state.get('ultima_prediccion')) is not None:
             pred = last_pred['pred']
             conf = last_pred['conf']
-            st.metric("Predicción del modelo", value=pred, delta=f"{'-' if conf < 0.7 else ''}{conf:.2%}")
+            st.metric('Predicción del modelo', value=pred, delta=f"{'-' if conf < 0.7 else ''}{conf:.2%}")
         else:
             # Si no se ha lanzado una predicción, mostramos mecanismo para lanzarla
             # Verificamos que tengamos una imagen cargada y validada en sesión
             if nombre_imagen:=st.session_state.get('imagen_cargada_y_validada'):
-                predecir = st.button(f"Predecir {nombre_imagen}")
+                predecir = st.button(f'Predecir "{nombre_imagen}"')
                 if predecir:
                     # Procesamos la imagen
                     img_processed = process_image(img_array)
                     # Lanzamos las predicciones
-                    with st.spinner(text="Prediciendo dígito..."):
-                        pred, conf = predict(img_processed)
-                        time.sleep(1)
-                    st.metric("Predicción del modelo", value=pred, delta=f"{'-' if conf < 0.7 else ''}{conf:.2%}")
+                    with st.spinner(text='Prediciendo dígito...'):
+                        try:
+                            pred, conf = predict(img_processed)
+                            time.sleep(1)
+                        except Exception as exc:
+                            st.error(f'Se ha producido un error al predecir: {exc}')
+                            st.stop()
+                    # Si la confianza es menor del 70% ponemos un signo menos para que streamlit lo muestre
+                    # en color rojo
+                    st.metric('Predicción del modelo', value=pred, delta=f"{'-' if conf < 0.7 else ''}{conf:.2%}")
                     # Guardamos en sesión
                     st.session_state['ultima_prediccion'] = {
                         'pred': int(pred),
@@ -279,59 +248,98 @@ def main() -> None:
                     }
                     
             else:
-                st.info("Carga una imagen para predecir.")
+                st.info('Carga una imagen para predecir.')
 
+    #################
+    ## TAB Evaluar ##
+    #################
     with tab_evaluar:
         # Verificamos si hay una predicción lanzada y guardada en sesión
         if (last_pred:=st.session_state.get('ultima_prediccion')) is not None:
             # Posibilidad de contrastar con la realidad para almacenar porcentaje de aciertos
-            st.subheader("¿ Ha acertado el modelo ?")
-            digit = st.number_input("Marca el dígito que habías dibujado", min_value=0, max_value=9)
-            guardar_pred = st.button("Guardar evaluación", help='Añade la evaluación al historial')
+            st.subheader('¿ Ha acertado el modelo ?')
+            digit = st.number_input('Marca el dígito que habías dibujado', min_value=0, max_value=9)
+            guardar_pred = st.button('Guardar evaluación', help='Añade la evaluación al historial')
+            # Si se pulsa el botón
             if guardar_pred:
-                # Comprobamos si ya está ese archivo guardado
-                if not pred_already_saved(imagen_bruta.name):
-                    # Añadimos a ultima_prediccion la evaluación del usuario
-                    last_pred['real'] = digit
-                    # Añadimos la hora
-                    last_pred['fecha'] = get_timestamp(DAY_HOUR_FORMAT)
-                    # Añadimos los valores al historial
-                    st.session_state['historial'].append(last_pred)
-                else:
-                    # Mostramos advertencia
-                    st.info("La evaluación ya se ha guardado.")
+                # Comprobamos primero si hay imagen cargada.
+                if imagen_bruta is not None:
+                    # Comprobamos que no hayamos guardado ya en sesión para no falsear las estadísticas
+                    if not pred_already_saved(imagen_bruta.name):
+                        # Añadimos a ultima_prediccion la evaluación del usuario
+                        last_pred['real'] = digit
+                        # Añadimos la hora
+                        last_pred['fecha'] = get_timestamp(DAY_HOUR_FORMAT)
+                        # Añadimos los valores al historial
+                        st.session_state['historial'].append(last_pred)
+                        # Mostramos mensaje de éxito
+                        st.success('Evaluación guardada correctamente.')
+                    else:
+                        # Mostramos advertencia
+                        st.info('La evaluación ya se ha guardado.')
         else:
-            st.info("Lanza una predicción para evaluar.")
+            st.info('Lanza una predicción para evaluar.')
 
+    ######################
+    ## TAB Estadísticas ##
+    ######################
     with tab_estadisticas:
-        # Creamos un dataframe con el historial guardado en sesión
-        df = pd.DataFrame(st.session_state.get('historial'))
-        # Sacamos los aciertos comparando la variable pred y real
-        df['aciertos'] = df['pred'] == df['real']
-        # Ploteamos el acumulado de aciertos para representar la curva de acumulados
-        plt.figure(figsize=(10, 6))
-        plt.plot(np.arange(len(df)), np.cumsum(df['aciertos']), label='acumulado aciertos')
-        plt.xlabel('Tiempo')
-        plt.ylabel('Aciertos acumulados')
-        plt.title('Evolución de aciertos a lo Largo del Tiempo')
-        plt.xticks(ticks=range(len(df)), labels=df['fecha'])
-        plt.yticks(ticks=range(len(df)))
-        plt.tight_layout()
-        st.pyplot(plt)
-        # Mostramos histograma con porcentaje de aciertos por dígito
-        fig, ax = plt.subplots()
-        # Agrupamos por dígito real y calculamos la media de aciertos por dicho dígito
-        precision_por_digito = df.groupby('real')['aciertos'].mean()
-        # Representamos en un gráfico de barras
-        ax.bar(precision_por_digito.index, precision_por_digito.values)
-        ax.set_xlabel('Dígitos')
-        ax.set_ylabel('% de Aciertos')
-        ax.set_title('Porcentaje de Aciertos por Dígito')
-        ax.set_xticks(range(0, 10))
-        st.pyplot(fig)
-        # Mostramos el dataframe
-        st.dataframe(df, use_container_width=True, hide_index=True, column_order=['archivo', 'pred', 'conf', 'real', 'fecha'])
-        
+        # Comprobamos que haya historial guardado en sesión
+        if st.session_state.get('historial'):
+            # Creamos un dataframe con el historial guardado en sesión
+            df = pd.DataFrame(st.session_state.get('historial'))
+            # Sacamos los aciertos comparando la variable pred y real
+            df['acierto'] = df['pred'] == df['real']
+
+            # Ploteamos el acumulado de aciertos para representar la curva de acumulados
+            plt.figure(figsize=(10, 6))
+            plt.plot(np.arange(len(df)), np.cumsum(df['acierto']), label='acumulado aciertos', color=COLOR_BLUE)
+            plt.xlabel('Tiempo')
+            plt.ylabel('Aciertos acumulados')
+            plt.title('Evolución de aciertos a lo Largo del Tiempo')
+            plt.xticks(ticks=range(len(df)), labels=df['fecha'])
+            plt.yticks(ticks=range(len(df)))
+            plt.tight_layout()
+            st.pyplot(plt)    
+
+            # Agrupamos por el dígito real y calculamos el porcentaje de aciertos y el conteo de predicciones
+            precision_y_conteo = df.groupby('real').agg({'acierto': 'mean', 'pred': 'count'})
+            # Multiplicamos por 100 para obtener el porcentaje
+            precision_y_conteo['acierto'] *= 100
+            # Configuración del ancho de las barras
+            bar_width = 0.35
+            # Configuramos las posiciones de las barras
+            indices = np.arange(len(precision_y_conteo))
+            # Creamos el gráfico
+            fig2, ax1 = plt.subplots()
+            # Barras para el porcentaje de aciertos
+            ax1.bar(indices - bar_width/2, precision_y_conteo['acierto'], bar_width, label='% de Aciertos', color='#213f99')
+            # Creamos el segundo eje para el número de intentos
+            ax2 = ax1.twinx()
+            # Barras para el número de intentos de predicción
+            ax2.bar(indices + bar_width/2, precision_y_conteo['pred'], bar_width, label='Número de Predicciones', color='orange')
+            # Configuración de las etiquetas y títulos
+            ax1.set_xlabel('Dígitos')
+            ax1.set_ylabel('% de Aciertos', color=COLOR_BLUE)
+            ax2.set_ylabel('Número de Predicciones', color='orange')
+            # Configuramos el segundo eje y para usar solo números enteros
+            ax2.yaxis.set_major_locator(MaxNLocator(integer=True))
+            ax1.set_xticks(indices)
+            ax1.set_xticklabels(precision_y_conteo.index)
+            #ax1.legend(loc='best')
+            #ax2.legend(loc='best')
+            # Título del gráfico
+            plt.title('Porcentaje de Aciertos y Número de Intentos por Dígito')
+            # Mostramos el gráfico
+            fig2.tight_layout()
+            st.pyplot(fig2)
+
+            # Mostramos el dataframe
+            st.dataframe(df, use_container_width=True, hide_index=True, column_order=['archivo', 'pred', 'conf', 'real', 'fecha'])
+
+        # Si no hay historial en sesión (lista vacía) mostramos mensaje de información 
+        else:
+            st.info('No hay estadísticas disponibles.')
         
 
 if __name__ == '__main__':

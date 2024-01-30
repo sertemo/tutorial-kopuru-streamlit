@@ -74,3 +74,12 @@ def show_sidebar() -> None:
         # Año autor y copyright
         añadir_salto()
         texto('© 2024 STM', centrar=True)
+
+def config_page() -> None:
+    """Configura los parámetros de la página"""
+    st.set_page_config(
+        page_title=f"Reconocimiento de dígitos",
+        page_icon="👁️", 
+        layout="centered",
+        initial_sidebar_state="auto",
+    )

@@ -15,25 +15,47 @@
 """Script que recoge el código relacionado con la visualización de las
 características del modelo entrenado"""
 
+import time
+
 import streamlit as st
 
-from streamlit_func import show_sidebar
+from models.convnet_model import get_model_summary
+from streamlit_func import show_sidebar, config_page
+
+# funciones auxiliares
+def stream_model_info() -> None:
+    """Streamea la información del modelo"""
+    stream_container = st.empty()
+    with stream_container:
+        output = ""
+        for letter in get_model_summary():
+            output += letter
+            st.code(output)
+            time.sleep(0.01)
+
+def print_model_info() -> None:
+    """Printea toda la información del modelo"""
+    st.code(get_model_summary())
 
 def main() -> None:
     """Entry point de la app"""
 
-    # Configuración de la app
-    st.set_page_config(
-        page_title=f"Reconocimiento de dígitos",
-        page_icon="👁️", 
-        layout="wide",
-        initial_sidebar_state="auto",
-    )
-
+    # Configuración de la app como función en streamlit_func
+    config_page()
+    # Configuramos la sidebar también importando de streamlit_func
     show_sidebar()
-        
-    # TODO Matriz zde Confusión
-    # TODO Parámetros del modelo
-        
+
+    st.title('Red Neuronal Convolucional')
+    st.subheader('Detalles del modelo entrenado')
+
+    if st.session_state.get('session_flag') is None:
+        # Es la primera vez que entramos en la página modelo
+        # asi que streameamos la info del modelo
+        stream_model_info()
+        # Cambiamos la flag a True
+        st.session_state['session_flag'] = True
+    else:
+        print_model_info()
+
 if __name__ == '__main__':
     main()
