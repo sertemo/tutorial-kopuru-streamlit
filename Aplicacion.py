@@ -14,7 +14,7 @@
 
 """Script con la aplicación principal"""
 
-# Librerías internas
+# Librerías internas de python
 from datetime import datetime
 from io import BytesIO
 import pytz
@@ -146,6 +146,7 @@ def is_valid_image(img_array:np.ndarray) -> Tuple[bool, str]:
         return False, f"La dimensión de la imagen debe ser (28, 28). La imagen cargada es {img_array.shape}."
     return True, ""
 
+# Función principal #
 def main() -> None:
     """Entry point de la app"""
 
@@ -341,7 +342,6 @@ def main() -> None:
         else:
             st.info('No hay estadísticas disponibles.')
         
-
 if __name__ == '__main__':
     main()
     
