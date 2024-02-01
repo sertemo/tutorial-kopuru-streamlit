@@ -3,44 +3,53 @@
 En este artículo veremos cómo crear y desplegar una sencilla aplicación de reconocimiento de dígitos con **Streamlit**.
 
 ## Un poco sobre mi.
-Mi nombre es Sergio Tejedor y soy un ingeniero industrial apasionado por el **Machine Learning**, la programación en **Python** y el desarrollo de aplicaciones. Actualmente soy director técnico de un grupo empresarial especializado en la laminación de perfiles en frío y fabricación de invernaderos industriales. Sin embargo, hace ya más de un año decidí dar el salto y ponerme a estudiar por mi cuenta programación. 
+Mi nombre es Sergio Tejedor y soy un ingeniero industrial apasionado por el **Machine Learning**, la programación en **Python** y el desarrollo de aplicaciones. Actualmente soy director técnico de un grupo empresarial especializado en la laminación de perfiles en frío y fabricación de invernaderos industriales. Hace ya algo más de un año decidí dar el salto y ponerme a estudiar por mi cuenta programación. 
 
-Escogí **Python** como lenguaje por su suave curva de aprendizaje y sobre todo porque es uno de los lenguajes más utilizados en la ciencia de datos y el **Machine Learning**. Al profundizar y descubrir la gran flexibilidad de este lenguaje de programación, de entre todas sus posibilidades, decidí centrarme en el campo del **Machine Learning** ya que es aquel que más sinergias podía tener con mi formación y profesión.
+Escogí **Python** como lenguaje por su suave curva de aprendizaje y por ser uno de los lenguajes más utilizados en la ciencia de datos y el **Machine Learning**. Al profundizar y descubrir la gran flexibilidad de este lenguaje de programación, de entre todas sus posibilidades, decidí centrarme en el campo del **Machine Learning** ya que es aquel que más sinergias podía tener con mi formación y profesión.
 
 ## ¿ Por qué Streamlit ?
-Enseguida empecé a desarrollar aplicaciones y querer compartirlas con amigos. No tardé en descubrir el framework para Python [**Streamlit**](https://streamlit.io/). Siempre había encontrado dificultades a la hora de desplegar aplicaciones (y las sigo encontrando) y es precisamente ahí dónde destaca esta librería. Streamlit permite crear y desplegar aplicaciones web dinámicas en las que poder compartir y visualizar tus proyectos de ciencia de datos utilizando únicamente Python y sin necesidad de conocimiento profundo de tecnologías web. Mediante los widgets que tienen disponibles, se pueden cargar archivos, visualizar gráficos, dataframes y muchas cosas más.
+Enseguida empecé a desarrollar aplicaciones y querer compartirlas con amigos. No tardé en descubrir el framework para Python [**Streamlit**](https://streamlit.io/). Siempre había encontrado dificultades a la hora de desplegar aplicaciones (y las sigo encontrando) y es precisamente este uno de los puntos fuertes de esta librería. **Streamlit** permite crear y desplegar aplicaciones web dinámicas en las que poder compartir y visualizar tus proyectos de ciencia de datos utilizando únicamente Python y sin necesidad de conocimiento profundo de tecnologías web. De forma rápida y muy sencilla. Mediante los widgets disponibles, se pueden cargar *archivos*, *visualizar gráficos*, *dataframes* y muchas cosas más.
 Tiene una comunidad creciente de usuarios y desarrolladores y una buena [documentación](https://docs.streamlit.io/library/api-reference) con ejemplos ilustrativos.
 
 ## Descripción de la app.
 Las posibilidades con **Streamlit** son casi ilimitadas pero hoy abordaremos el desarrollo de una aplicación de reconocimiento de dígitos. La aplicación está disponible [aquí](https://tutorial-kopuru.streamlit.app/).
 ![Alt text](img/aplicacion_view.JPG)
-Se le permite a un usuario cargar un dígito dibujado para que un modelo previamente entrenado lo intente reconocer. Asimismo, también mostrará algunas gráficas y estadísticas de las predicciones que se van haciendo.
-La aplicación es multi página (2 en este caso).
+La aplicación ofrece además la posibilidad de evaluar las predicciones del modelo y mostrar una serie de estadísticas.
+
+En definitiva, creo que es un buen ejemplo de muchas de las posibilidades que ofrece **Streamlit** a la hora de diseñar una aplicación web.
+
+A nivel de estructura, la aplicación cuenta con 2 páginas:
+
 La página principal, **Aplicación**, está organizada en **5 pestañas**:
+
 ### Cargar imagen
 ![Alt text](img/pesta%C3%B1a_cargar_imagen.JPG)
-- En esta pestaña el usuario podrá cargar la imagen con su dígito.
+- En esta pestaña es donde el usuario podrá cargar su dígito.
+
 ### Ver dígito
 ![Alt text](img/pesta%C3%B1a_ver_digito.JPG)
-- Se muestra el dígito dibujado por el usuario.
+- Aquí se mostrará una representación de la imagen del usuario.
+
 ### Predecir
 ![Alt text](img/pesta%C3%B1a_predecir.JPG)
 - Mediante un botón se lanza la predicción del modelo que se mostrará más abajo.
+
 ### Evaluar
 ![Alt text](img/pesta%C3%B1a_evaluar.JPG)
-- En esta pestaña se evalúa el modelo contrastándolo con el dígito real que se pretendía dibujar y se da la posibilidad de guardar dicha evaluación
+- En esta pestaña se evalúa el modelo contrastándolo con el dígito real que se pretendía dibujar y se da la posibilidad de guardar dicha evaluación.
+
 ### Ver estadísticas
 ![Alt text](img/pesta%C3%B1a_estadisticas.JPG)
-- Con todas las evaluaciones guardadas se realizan algunas gráficas estadísticas
+- Con todas las evaluaciones guardadas se realizan algunas gráficas estadísticas.
 
-La única página secundaria, **Modelo**, tiene detalles del modelo entrenado. Al acceder a ella se muestra en forma de *'stream'* las capas y parámetros del modelo.
+La única página secundaria, **Modelo**, tiene detalles del modelo entrenado. Al acceder a ella se muestran en forma de *'stream'* las capas y parámetros del modelo.
 
 ## Desarrollo de la app.
-Crea un nuevo proyecto en tu IDE favorito. Personalmente uso **Visual Studio Code** para desarrollar mis aplicaciones ya que lo encuentro fácil de usar y muy personalizable. La gran cantidad de extensiones disponibles facilitan mucho el desarrollo del código.
+Crea un nuevo proyecto en tu editor de código favorito. Personalmente uso [**Visual Studio Code**](https://code.visualstudio.com/) para desarrollar mis aplicaciones ya que lo encuentro fácil de usar y muy personalizable. La gran cantidad de extensiones disponibles facilitan mucho el desarrollo del código.
 
-Crearemos el script **Aplicacion.py** que recogerá el código de la página principal y la carpeta **pages** con el archivo **1_Modelo.py** en su interior. Las aplicaciones multipágina en streamlit se configuran de este modo; una página inicial o principal en la ruta raiz del proyecto y todas las páginas secundarias deberán ir dentro de una carpeta **pages**. Es altamente recomendable nombrar los scripts de las páginas secundarias con los prefijos 1_xx, 2_xx, 3_xx etc para que streamlit pueda reconocerlos correctamente.
+Crearemos el script **Aplicacion.py** que recogerá el código de la página principal y la carpeta **pages** con el archivo **1_Modelo.py** en su interior. Las aplicaciones multipágina en streamlit se configuran de este modo; una página inicial o principal en la ruta raiz del proyecto y todas las páginas secundarias deberán ir dentro de una carpeta **pages**. Es recomendable nombrar los scripts de las páginas secundarias con los prefijos 1_xx, 2_xx, 3_xx etc para que streamlit pueda reconocerlos correctamente.
 
-El siguiente paso es configurar un entorno virtual e instalar las dependencias necesarias. Para proyectos en los que utilizo algún tipo de modelo de deep learning con tensorflow** tengo un entorno virtual llamado **tensorflow** creado con **conda** con todos los paquetes necesarios. Puedes crear el entorno virtual usando Python en su versión 3.9 con el siguiente comando en la terminal:
+El siguiente paso es configurar un entorno virtual e instalar las dependencias necesarias. Para proyectos en los que utilizo algún tipo de modelo de deep learning con tensorflow tengo un entorno virtual llamado **tensorflow** creado con **conda** con todos los paquetes necesarios. Puedes crear el entorno virtual usando Python en su versión 3.9 con el siguiente comando en la terminal:
  ```sh
 $ conda create --name tensorflow python=3.9
 ```
@@ -94,7 +103,15 @@ Casi siempre estructuro el script en varios bloques ([PEP8](https://peps.python.
         main()
     ```
 
-Para poder acceder a todas las funcionalidades necesitamos importar **streamlit** con el alias **st** (esto es por convención). Seguidamente escribiremos la función **main** y en ella configuraremos algunos parámetros de la aplicación como el **título**, el **icono**, el tipo de **layout** y la configuración inicial de la **barra lateral**.
+Para poder acceder a todas las funcionalidades necesitamos importar **streamlit** con el alias **st** (esto es por convención). Aprovechamos también para importar el resto de librerías que vamos a ir necesitando:
+```py
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from PIL import Image
+```
+
+Seguidamente escribiremos la función **main** y en ella configuraremos algunos parámetros de la aplicación como el **título**, el **icono**, el tipo de **layout** y la configuración inicial de la **barra lateral**.
 ```py
 st.set_page_config(
         page_title=f"Reconocimiento de dígitos",
@@ -152,6 +169,98 @@ with tab_cargar_imagen:
         dibujado en blanco sobre color negro.''', unsafe_allow_html=True)
 ```
 #### Pestaña Cargar imagen.
+En esta primera pestaña vamos a dar la posibilidad al usuario de cargar una imagen. Realizaremos las siguientes etapas:
+- Guardar la imagen del usuario en una variable
+- Transformar la imagen en un array de **numpy**
+- Verificar que la imagen cumpla los parámetros requeridos para pasarla por nuestro modelo
+- Guardamos el nombre del archivo en sesión y mostramos mensaje de éxito
+
+Para poder guardar el contenido de un archivo en una variable, streamlit pone a nuestra disposición la función **st.file_uploader()**. Al llamar a esta función, streamlit mostrará el widget de carga de archivos en la web.
+```py
+imagen_bruta = st.file_uploader(label='Sube tu dígito', type=["png","tif","jpg","bmp","jpeg"], on_change=reset_predictions)
+```
+
+Esta función nos devuelve o **None** si no hay ninguna imagen o un objeto de **UploadedFile**. El resto de lógica dentro de esta pestaña solo deberá ejecutarse **si** el usuario ha cargado una imagen. Recuerda que cada interacción del usuario con la aplicación ejecuta todos los scripts de arriba a abajo. Añadimos un bloque condicional para agrupar el resto del código de esta pestaña:
+```py
+if imagen_bruta is not None:
+    # TODO: Transformar en array
+    # TODO: Validar la imagen
+    # TODO: Si no es válida detener la ejecución de la aplicación
+    # TODO: Guardar nombre del archivo en sesión
+    # TODO: Mostrar mensaje de éxito.
+```
+
+Para transformar los datos de la imagen en un array primero tenemos que leer el contenido del objeto **UploadedFile** que nos lo devolverá en bytes. La librería [Pillow](https://pillow.readthedocs.io/en/stable/reference/Image.html) es muy utilizada en Python para el tratamiento de imágenes y el método **open** dentro del módulo **Image** nos permite abrir la imagen pero antes es necesario envolver los bytes devueltos por el objeto UploadedFile con la clase **BytesIO** para tratar dichos bytes como si de un archivo se trataran. El código queda así:
+```py
+img_array = np.array(Image.open(BytesIO(imagen_bruta.read())))
+```
+
+**BytesIO** se importa de la librería **io** que viene incluida con Python.
+
+Si la imagen cargada por el usuario no pasa nuestras funciones de validación, es apropiado mostrar un mensaje de error al usuario y detener la aplicación, de lo contrario podríamos encontrarnos con múltiples errores.
+```py
+if not valid_img:
+                st.error(error_msg)
+                st.stop() # Lo que viene después del stop no se ejecutará.
+```
+
+**Streamlit** también permite volver a ejecutar la aplicación con la función **st.rerun()**.
+
+Para poder guardar información de manera persistente y que sobreviva a las interacciones del usuario con la aplicación, streamlit pone a nuestra disposición [**st.session_state**](https://docs.streamlit.io/library/api-reference/session-state).
+
+**st.session_state** es un diccionario (un objeto diccionario clásico de Python) de sesión en el que podemos escribir y extraer la información que queramos. Este diccionario no se reescribe cada vez que se ejecuta el código pero sí se reinicia cuando volvemos a cargar la sesión (cuando volvemos a cargar la aplicación). Si quisiéramos que la información fuera persistente entre sesiones tendríamos que almacenarla en una base de datos. Para nuestra aplicación de hoy, st.session_state será suficiente.
+
+Suele ser de gran ayuda también mostrar el contenido de st.session_state a medida que se desarrolla la aplicación. Para ello puedes escribir lo siguiente al principio o final de tu script:
+```py
+st.session_state
+```
+
+En nuestro caso guardaremos el nombre del archivo con la clave *imagen_cargada_y_validada*.
+```py
+# Si la imagen es válida guardamos en sesión el nombre del archivo y mostramos un mensaje de éxito
+st.session_state['imagen_cargada_y_validada'] = imagen_bruta.name
+# Este mensaje solo se mostrará si hay una imagen cargada y si la imagen está validada
+st.success('Imagen cargada correctamente.')
+```
+
+**Streamlit** permite usar 4 tipos de [mensaje de estado](https://docs.streamlit.io/library/api-reference/status):
+- **st.error()** : muestra el mensaje sobre fondo rojo.
+- **st.warning()** : muestra el mensaje sobre fondo amarillo.
+- **st.info()** : muestra el mensaje sobre fondo azul.
+- **st.success()** : muestra el mensaje sobre fondo verde.
+
+Todos ellos tienen la posibilidad de incluir un icono en el mensaje.
+
+#### Pestaña Ver dígito.
+Una vez terminada la implementación de la primera pestaña podemos pasar a la segunda. En esta pestaña simplemente mostraremos la imagen cargada por el usuario para poder visualizar el dígito.
+
+**Streamlit** incorpora funciones propias para visualizar varios tipos de [gráficos](https://docs.streamlit.io/library/api-reference/charts) y además también ofrece la posibilidad de visualizar gráficos realizados con **matplotlib**. Los gráficos propios de streamlit son interactivos mientras que aquellos realizados con librerías como matplotlib se visualizan como imágenes.
+
+Mostraremos el dígito del usuario con el siguiente código:
+```py
+with tab_ver_digito:
+    # Verificamos que tengamos una imagen cargada y validada en sesión
+    if nombre_archivo:=st.session_state.get('imagen_cargada_y_validada'):
+        fig, ax = plt.subplots(figsize=(5, 2))
+        ax.imshow(img_array, cmap="gray")
+        ax.axis('off')
+        ax.set_title(nombre_archivo, fontsize=5)
+        st.pyplot(fig)
+    else:
+        st.info('Carga una imagen para visualizar.')
+```
+
+De nuevo, es importante tener en cuenta que cada interacción del usuario con los elementos de la aplicación hará que se ejecute todo el código. Por ello, para evitar errores, verificamos primero que exista una imagen cargada y haya sido validada. Comprobamos si en sesión existe el campo **imagen_cargada_y_validada** que hemos guardado previamente en la pestaña anterior tras realizar las validaciones. De ser así, mostramos el gráfico.
+
+Para visualizar un gráfico de matplotlib en streamlit basta con pasarle el objeto **Figure** devuelto por **subplots** a la función **st.pyplot()**.
+
+![Alt text](img/ver_digito_2.JPG)
+
+#### Pestaña Predecir.
+
+#### Pestaña Evaluar.
+
+#### Pestaña Estadísticas.
 
 
 
@@ -161,11 +270,5 @@ with tab_cargar_imagen:
 
 
 
-----------------------------------------
-----------------------------------------
-Guión:
-1. Contar algo sobre ti (nos gusta que os vendáis un poco 😊 y que os conozcan)
-2. Contar por qué usas esta aplicación o las ventajas que has visto en ella (muy breve, queremos que la importancia no este en la App, si no en lo que puedes hacer a través de ella)
-3. Desarrollar la idea que quieres poner en marcha, por ejemplo, la de detección de dígitos e imágenes.
-4. Contar el paso a paso de cómo se desarrolla.
-5. Incluir código sólo en esos apartados donde es más fácil matizar algún detalle si se tiene el código delante. Y en el resto de pasos, remitir al git, donde lo tienes completo.
+
+

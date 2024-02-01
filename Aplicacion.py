@@ -204,10 +204,11 @@ def main() -> None:
     ################        
     with tab_ver_digito:
         # Verificamos que tengamos una imagen cargada y validada en sesión
-        if st.session_state.get('imagen_cargada_y_validada'):
+        if nombre_archivo:=st.session_state.get('imagen_cargada_y_validada'):
             fig, ax = plt.subplots(figsize=(5, 2))
             ax.imshow(img_array, cmap="gray")
             ax.axis('off')
+            ax.set_title(nombre_archivo, fontsize=5)
             st.pyplot(fig)
         else:
             st.info('Carga una imagen para visualizar.')
@@ -291,6 +292,9 @@ def main() -> None:
             df = pd.DataFrame(st.session_state.get('historial'))
             # Sacamos los aciertos comparando la variable pred y real
             df['acierto'] = df['pred'] == df['real']
+
+            # Gráfico de evolución de confianzas
+            st.line_chart(df, x='fecha', y='conf')
 
             # Ploteamos el acumulado de aciertos para representar la curva de acumulados
             plt.figure(figsize=(10, 6))
