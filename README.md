@@ -170,10 +170,10 @@ with tab_cargar_imagen:
 ```
 #### Pestaña Cargar imagen.
 En esta primera pestaña vamos a dar la posibilidad al usuario de cargar una imagen. Realizaremos las siguientes etapas:
-- Guardar la imagen del usuario en una variable
-- Transformar la imagen en un array de **numpy**
-- Verificar que la imagen cumpla los parámetros requeridos para pasarla por nuestro modelo
-- Guardamos el nombre del archivo en sesión y mostramos mensaje de éxito
+1. Guardar la imagen del usuario en una variable
+2. Transformar la imagen en un array de **numpy**
+3. Verificar que la imagen cumpla los parámetros requeridos para pasarla por nuestro modelo
+4. Guardamos el nombre del archivo en sesión y mostramos mensaje de éxito
 
 Para poder guardar el contenido de un archivo en una variable, streamlit pone a nuestra disposición la función **st.file_uploader()**. Al llamar a esta función, streamlit mostrará el widget de carga de archivos en la web.
 ```py
@@ -200,8 +200,8 @@ img_array = np.array(Image.open(BytesIO(imagen_bruta.read())))
 Si la imagen cargada por el usuario no pasa nuestras funciones de validación, es apropiado mostrar un mensaje de error al usuario y detener la aplicación, de lo contrario podríamos encontrarnos con múltiples errores.
 ```py
 if not valid_img:
-                st.error(error_msg)
-                st.stop() # Lo que viene después del stop no se ejecutará.
+    st.error(error_msg)
+    st.stop() # Lo que viene después del stop no se ejecutará.
 ```
 
 **Streamlit** también permite volver a ejecutar la aplicación con la función **st.rerun()**.
@@ -257,6 +257,105 @@ Para visualizar un gráfico de matplotlib en streamlit basta con pasarle el obje
 ![Alt text](img/ver_digito_2.JPG)
 
 #### Pestaña Predecir.
+Dentro de la pestaña predecir es dónde se ejecutará el modelo pre-entrenado con la imagen cargada por el usuario. El flujo de información que seguiremos con el código es el siguiente:
+1. En primer lugar comprobamos si ya se ha lanzado una predicción. Para ello usaremos la misma técnica que en la pestaña precedente; comprobamos si existe una determinada clave en el diccionario de sesión **st.session_state**.
+2. Si se ha lanzado ya una predicción (es decir existe la clave buscada), simplemente la mostramos en la aplicación junto a la confianza de la predicción.
+3. Si no existe ninguna predicción previa:
+    1. Comprobamos si existe una imagen cargada y validada, de la misma manera que en la pestaña anterior.
+    2. Si existe, mostramos un botón para lanzar una predicción. Al pulsar sobre el botón:
+        1. Procesamos la imagen para alimentar al modelo
+        2. Lanzamos predicción del modelo y retornamos el dígito predicho y la confianza de la predicción.
+        3. Mostramos el dígito y la confianza. Si la confianza es inferior al 70% se mostrará en rojo.
+        4. Guardamos en sesión bajo la llave **ultima_prediccion** el dígito, la confianza y el nombre del archivo.
+    3. Si no existe una imagen validada mostramos un mensaje al usuario.
+
+**Streamlit** ofrece un formato para mostrar [métricas](https://docs.streamlit.io/library/api-reference/data/st.metric) con la función **st.metric()**. Esta función muestra una columna con 3 valores: la etiqueta, un valor en letra grande y un incremento en rojo (negativo) o verde (positivo).
+```py
+if (last_pred:=st.session_state.get('ultima_prediccion')) is not None:
+    pred = last_pred['pred']
+    conf = last_pred['conf']
+    st.metric('Predicción del modelo', value=pred, delta=f"{'-' if conf < 0.7 else ''}{conf:.2%}")
+```
+
+En esta aplicación he decidido arbitrariamente poner en negativo aquellas confianzas inferiores al 70%.
+
+Para mostrar un [botón](https://docs.streamlit.io/library/api-reference/widgets/st.button) en streamlit solo tenemos que llamar a la función **st.button()** con una etiqueta como argumento obligatorio que será el texto mostrado por el botón. Esta función devuelve **True** cuando el botón es pulsado por el usuario. En el código recogemos la salida del botón en la variable **predecir**.
+```py
+if nombre_imagen:=st.session_state.get('imagen_cargada_y_validada'):
+    # Mostramos el botón
+    predecir = st.button(f'Predecir "{nombre_imagen}"')
+    # Si el usuario pulsa el botón
+    if predecir:
+        # Procesamos la imagen
+        img_processed = process_image(img_array)
+        # Lanzamos las predicciones
+        with st.spinner(text='Prediciendo dígito...'):
+            try:
+                # La función predict nos devuelve el dígito y la confianza
+                pred, conf = predict(img_processed)
+                # Esperamos 1 segundo para mostrar el spinner
+                time.sleep(1)
+            except Exception as exc:
+                # En caso de que algo haya ido mal paramos la ejecución de la aplicación
+                st.error(f'Se ha producido un error al predecir: {exc}')
+                st.stop()
+        # Si la confianza es menor del 70% ponemos un signo menos para que streamlit lo muestre
+        # en color rojo
+        st.metric('Predicción del modelo', value=pred, delta=f"{'-' if conf < 0.7 else ''}{conf:.2%}")
+        # Guardamos en sesión
+        st.session_state['ultima_prediccion'] = {
+            'pred': int(pred),
+            'conf': conf,
+            'archivo': nombre_imagen,
+        }
+```
+
+Para hacer la aplicación más visual podemos añadir un [spinner](https://docs.streamlit.io/library/api-reference/status/st.spinner) que mostrará un mensaje de ejecución mientras se está ejecutando un determinado código. Para usar un spinner tenemos que utilizar la función **st.spinner()** como un gestor de contexto, con la notación **with**. Mientras se esté ejecutando el interior del bloque **with** se mostrará el spinner.
+
+Para utilizar el modelo he seguido los siguientes pasos:
+1. Entrenar un modelo convolucional en otra plataforma y guardar sus **weights** (coeficientes) en disco.
+2. Crear una función que devuelva un modelo con la misma arquitectura que el modelo entrenado
+3. Crear una función que cargue los **weights** al modelo y lo devuelva.
+
+Todos los scripts y objetos relacionados con el modelo se han implementado dentro de la carpeta **models**.
+
+En este punto es especialmente relevante destacar uan característica de **Streamlit** para mejorar el rendimiento de las aplicaciones. Como ya hemos visto **Streamlit** ejecuta una y otra vez los scripts lo cual puede traducirse en un tiempos de espera largos si las funciones realizan tareas pesadas. Para solucionar este contratiempo, streamlit permite usar [*caching*](https://docs.streamlit.io/library/advanced-features/caching) mediante 2 funciones:
+- **st.cache_data()** : guarda información dentro de la sesión. Es la forma indicada cuando queremos guardar en caché serializable como str, int, float, DataFrame, list etc.
+- **st.cache_resource()** : guarda información entre sesiones y usuarios. Es la forma indicada de almacenar modelos de ML o conexiones a bases de datos.
+
+Para nuestra aplicación, queremos evitar que en cada ejecución se cree el modelo y se carguen sus coeficientes. Podemos utilizar la función **st.cache_resource()** como decorador de la función que carga el modelo:
+```py
+@st.cache_resource()
+def load_model() -> keras.Model:
+    """Devuelve el modelo con los weights cargados
+
+    Parameters
+    ----------
+    model : keras.Model
+        Modelo virgen
+    weights_file : str
+        Archivo *.h5 donde están los weights
+
+    Returns
+    -------
+    keras.Model
+        Devuelve el modelo con los weights cargados
+    """
+    # Construimos el modelo
+    model = build_model()
+    # Ruta a los weights del modelo
+    weights = MODEL_PATH / 'convnet_mnist_104k_weights.h5'
+    # Cargamos los weights
+    model.load_weights(weights, by_name=True)
+    return model
+```
+
+De esta manera el modelo estará disponible entre sesiones y usuarios.
+
+
+
+
+
 
 #### Pestaña Evaluar.
 
