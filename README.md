@@ -61,7 +61,7 @@ Para este proyecto concretamente instalaremos las siguientes dependencias:
 ```sh
 $ pip install streamlit tensorflow numpy pandas Pillow matplotlib
 ```
-Para realizar el despliegue de la aplicación una vez hayamos terminado su desarrollo, será necesario tener una cuenta en [**GitHub**](https://github.com/) y aunque pueda hacerse al final, suele ser aconsejable iniciar **git** en el proyecto e ir guardando los avances de la aplicación en tu repositorio de GitHub. Ya sabes, por lo que pueda pasar.
+Para realizar el despliegue de la aplicación una vez hayamos terminado su desarrollo, será necesario tener una cuenta en [**GitHub**](https://github.com/) y aunque pueda hacerse al final, suele ser aconsejable iniciar **git** en el proyecto e ir guardando los avances de la aplicación en tu repositorio de GitHub.
 
 **Streamlit** permite configurar algunos temas para toda la aplicación. Esto se realiza con un archivo **config.toml** que debe insertarse en una carpeta **.streamlit** en la rama principal de tu proyecto.
 
@@ -266,7 +266,7 @@ Dentro de la pestaña predecir es dónde se ejecutará el modelo pre-entrenado c
         1. Procesamos la imagen para alimentar al modelo
         2. Lanzamos predicción del modelo y retornamos el dígito predicho y la confianza de la predicción.
         3. Mostramos el dígito y la confianza. Si la confianza es inferior al 70% se mostrará en rojo.
-        4. Guardamos en sesión bajo la llave **ultima_prediccion** el dígito, la confianza y el nombre del archivo.
+        4. Guardamos en sesión bajo la clave **ultima_prediccion** el dígito, la confianza y el nombre del archivo.
     3. Si no existe una imagen validada mostramos un mensaje al usuario.
 
 **Streamlit** ofrece un formato para mostrar [métricas](https://docs.streamlit.io/library/api-reference/data/st.metric) con la función **st.metric()**. Esta función muestra una columna con 3 valores: la etiqueta, un valor en letra grande y un incremento en rojo (negativo) o verde (positivo).
@@ -319,7 +319,7 @@ Para utilizar el modelo he seguido los siguientes pasos:
 
 Todos los scripts y objetos relacionados con el modelo se han implementado dentro de la carpeta **models**.
 
-En este punto es especialmente relevante destacar uan característica de **Streamlit** para mejorar el rendimiento de las aplicaciones. Como ya hemos visto **Streamlit** ejecuta una y otra vez los scripts lo cual puede traducirse en un tiempos de espera largos si las funciones realizan tareas pesadas. Para solucionar este contratiempo, streamlit permite usar [*caching*](https://docs.streamlit.io/library/advanced-features/caching) mediante 2 funciones:
+En este punto es especialmente relevante destacar una característica de **Streamlit** para mejorar el rendimiento de las aplicaciones. Como ya hemos visto **Streamlit** ejecuta una y otra vez los scripts lo cual puede traducirse en un tiempos de espera largos si las funciones realizan tareas pesadas. Para solucionar este contratiempo, streamlit permite usar [*caching*](https://docs.streamlit.io/library/advanced-features/caching) mediante 2 funciones:
 - **st.cache_data()** : guarda información dentro de la sesión. Es la forma indicada cuando queremos guardar en caché serializable como str, int, float, DataFrame, list etc.
 - **st.cache_resource()** : guarda información entre sesiones y usuarios. Es la forma indicada de almacenar modelos de ML o conexiones a bases de datos.
 
@@ -327,19 +327,12 @@ Para nuestra aplicación, queremos evitar que en cada ejecución se cree el mode
 ```py
 @st.cache_resource()
 def load_model() -> keras.Model:
-    """Devuelve el modelo con los weights cargados
-
-    Parameters
-    ----------
-    model : keras.Model
-        Modelo virgen
-    weights_file : str
-        Archivo *.h5 donde están los weights
+    """Devuelve el modelo con los weights cargados.
 
     Returns
     -------
     keras.Model
-        Devuelve el modelo con los weights cargados
+        El modelo con los coeficientes integrados.
     """
     # Construimos el modelo
     model = build_model()
@@ -352,12 +345,56 @@ def load_model() -> keras.Model:
 
 De esta manera el modelo estará disponible entre sesiones y usuarios.
 
-
-
-
-
-
 #### Pestaña Evaluar.
+En esta pestaña daremos la oportunidad al usuario de decirle al modelo si ha acertado o no. También implementaremos la opción de guardar las evaluaciones para realizar estadísticas en la pestaña siguiente.
+
+El flujo de información será el siguiente:
+1. Verificamos si hay una predicción guardada en sesión.
+2. Si la hay, mostramos un *widget* para que el usuario introduzca el dígito dibujado.
+3. Mostramos el botón de **guardar evaluación**.
+4. Al pulsar sobre el botón de guardar:
+    1. Comprobamos que el nombre de archivo no se haya guardado previamente (para evitar guardar la misma evaluación más de una vez).
+    2. Añadimos a la clave **ultima_prediccion** el dígito real introducido por el usuario y la fecha.
+    3. Añadimos el diccionario **ultima_prediccion** a una lista en sesión con la clave **historial**.
+    4. Mostramos mensaje de éxito.
+
+La función **st.number_input()** nos permite recoger un [input](https://docs.streamlit.io/library/api-reference/widgets) numérico del usuario. Se le pueden pasar como argumentos el mínimo y el máximo. En nuestro caso el valor mínimo posible es el **0** y el máximo es el **9**.
+```py
+digit = st.number_input('Marca el dígito que habías dibujado', min_value=0, max_value=9)
+```
+
+La clave **historial** es una lista en sesión que irá almacenando los diccionarios **ultima_prediccion** con la predicción, la confianza, el nombre del archivo, el dígito real y la fecha y hora cuando se pulsa el botón **guardar predicción**.
+```py
+# Verificamos si hay una predicción lanzada y guardada en sesión
+if (last_pred:=st.session_state.get('ultima_prediccion')) is not None:
+    ...
+    # Si se pulsa el botón
+    if guardar_pred:
+        # Comprobamos que no hayamos guardado ya en sesión para no falsear las estadísticas
+        if not pred_already_saved(last_pred['archivo']):
+            # Añadimos a ultima_prediccion la evaluación del usuario
+            last_pred['real'] = digit
+            # Añadimos la hora
+            last_pred['fecha'] = get_timestamp(DAY_HOUR_FORMAT)
+            # Añadimos los valores al historial
+            st.session_state['historial'].append(last_pred)
+            # Mostramos mensaje de éxito
+            st.success('Evaluación guardada correctamente.')
+
+```
+
+Sin embargo, al realizar la operación **append** la primera vez, la clave **historial** no existe en sesión y por lo tanto nos daría un error. Por ello es importante inicializar al principio de la función **main** aquellas claves en sesión que van a ser manipuladas durante la ejecución:
+```py
+# Inicializamos variables de sesión para llevar un registro de las predicciones
+if st.session_state.get('historial') is None:
+    st.session_state['historial'] = []
+# Flag para saber si tenemos una imagen cargada y validada
+st.session_state['imagen_cargada_y_validada'] = False
+```
+
+De esta manera, cada vez que se ejecuta el script, si la clave **historial** no existe en sesión, se crea con una lista vacía.
+
+![alt text](img/pestaña_evaluar_con_digito.JPG)
 
 #### Pestaña Estadísticas.
 

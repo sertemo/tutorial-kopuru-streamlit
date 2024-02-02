@@ -26,19 +26,12 @@ MODEL_PATH = Path('models')
 # Funciones
 @st.cache_resource()
 def load_model() -> keras.Model:
-    """Devuelve el modelo con los weights cargados
-
-    Parameters
-    ----------
-    model : keras.Model
-        Modelo virgen
-    weights_file : str
-        Archivo *.h5 donde están los weights
+    """Devuelve el modelo con los weights cargados.
 
     Returns
     -------
     keras.Model
-        Devuelve el modelo con los weights cargados
+        El modelo con los coeficientes integrados.
     """
     # Construimos el modelo
     model = build_model()

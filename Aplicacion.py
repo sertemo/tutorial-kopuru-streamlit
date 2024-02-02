@@ -264,21 +264,19 @@ def main() -> None:
             guardar_pred = st.button('Guardar evaluación', help='Añade la evaluación al historial')
             # Si se pulsa el botón
             if guardar_pred:
-                # Comprobamos primero si hay imagen cargada.
-                if imagen_bruta is not None:
-                    # Comprobamos que no hayamos guardado ya en sesión para no falsear las estadísticas
-                    if not pred_already_saved(imagen_bruta.name):
-                        # Añadimos a ultima_prediccion la evaluación del usuario
-                        last_pred['real'] = digit
-                        # Añadimos la hora
-                        last_pred['fecha'] = get_timestamp(DAY_HOUR_FORMAT)
-                        # Añadimos los valores al historial
-                        st.session_state['historial'].append(last_pred)
-                        # Mostramos mensaje de éxito
-                        st.success('Evaluación guardada correctamente.')
-                    else:
-                        # Mostramos advertencia
-                        st.info('La evaluación ya se ha guardado.')
+                # Comprobamos que no hayamos guardado ya en sesión para no falsear las estadísticas
+                if not pred_already_saved(last_pred['archivo']):
+                    # Añadimos a ultima_prediccion la evaluación del usuario
+                    last_pred['real'] = digit
+                    # Añadimos la hora
+                    last_pred['fecha'] = get_timestamp(DAY_HOUR_FORMAT)
+                    # Añadimos los valores al historial
+                    st.session_state['historial'].append(last_pred)
+                    # Mostramos mensaje de éxito
+                    st.success('Evaluación guardada correctamente.')
+                else:
+                    # Mostramos advertencia
+                    st.info('La evaluación ya se ha guardado.')
         else:
             st.info('Lanza una predicción para evaluar.')
 
