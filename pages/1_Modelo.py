@@ -46,7 +46,9 @@ def main() -> None:
     show_sidebar()
 
     st.title('Red Neuronal Convolucional')
-    st.subheader('Detalles del modelo entrenado')
+    st.subheader('Dataset')
+    st.image('img/MNIST Dataset example.JPG')
+    st.subheader('Arquitectura')
 
     if st.session_state.get('session_flag') is None:
         # Es la primera vez que entramos en la página modelo
@@ -55,6 +57,8 @@ def main() -> None:
         # Cambiamos la flag a True
         st.session_state['session_flag'] = True
     else:
+        # No es la primera vez que entramos asi que
+        # mostramos todo directamente
         print_model_info()
 
 if __name__ == '__main__':

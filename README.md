@@ -310,14 +310,21 @@ if nombre_imagen:=st.session_state.get('imagen_cargada_y_validada'):
         }
 ```
 
-Para hacer la aplicación más visual podemos añadir un [spinner](https://docs.streamlit.io/library/api-reference/status/st.spinner) que mostrará un mensaje de ejecución mientras se está ejecutando un determinado código. Para usar un spinner tenemos que utilizar la función **st.spinner()** como un gestor de contexto, con la notación **with**. Mientras se esté ejecutando el interior del bloque **with** se mostrará el spinner.
+Para hacer la aplicación más dinámica y atractiva podemos añadir un [spinner](https://docs.streamlit.io/library/api-reference/status/st.spinner) que mostrará un mensaje de ejecución mientras se está ejecutando un determinado código. Para usar un spinner tenemos que utilizar la función **st.spinner()** como un gestor de contexto, con la notación **with**. Mientras se esté ejecutando el interior del bloque **with** se mostrará el spinner.
 
 Para utilizar el modelo he seguido los siguientes pasos:
-1. Entrenar un modelo convolucional en otra plataforma y guardar sus **weights** (coeficientes) en disco.
+1. Entrenar un modelo convolucional en otra plataforma y guardar sus **weights** (coeficientes) en disco. El modelo ha sido entrenado con el dataset MNIST.
 2. Crear una función que devuelva un modelo con la misma arquitectura que el modelo entrenado
 3. Crear una función que cargue los **weights** al modelo y lo devuelva.
 
 Todos los scripts y objetos relacionados con el modelo se han implementado dentro de la carpeta **models**.
+```sh
+Carpeta Principal
+├── models
+│   ├── __init__.py
+│   ├── convnet_mnist_104k_weights.h5
+│   └── convnet_model.py
+```
 
 En este punto es especialmente relevante destacar una característica de **Streamlit** para mejorar el rendimiento de las aplicaciones. Como ya hemos visto **Streamlit** ejecuta una y otra vez los scripts lo cual puede traducirse en un tiempos de espera largos si las funciones realizan tareas pesadas. Para solucionar este contratiempo, streamlit permite usar [*caching*](https://docs.streamlit.io/library/advanced-features/caching) mediante 2 funciones:
 - **st.cache_data()** : guarda información dentro de la sesión. Es la forma indicada cuando queremos guardar en caché serializable como str, int, float, DataFrame, list etc.
@@ -344,6 +351,8 @@ def load_model() -> keras.Model:
 ```
 
 De esta manera el modelo estará disponible entre sesiones y usuarios.
+
+![alt text](img/tab_predecir_ocho.JPG)
 
 #### Pestaña Evaluar.
 En esta pestaña daremos la oportunidad al usuario de decirle al modelo si ha acertado o no. También implementaremos la opción de guardar las evaluaciones para realizar estadísticas en la pestaña siguiente.
@@ -397,6 +406,108 @@ De esta manera, cada vez que se ejecuta el script, si la clave **historial** no 
 ![alt text](img/pestaña_evaluar_con_digito.JPG)
 
 #### Pestaña Estadísticas.
+En la pestaña **estadísticas** podemos mostrar todas las gráficas y métricas que se nos ocurran. Utilizaremos las evaluaciones guardadas en la clave **historial** de sesión para construir algunas gráficas.
+
+Con la función **st.dataframe()** podemos visualizar [dataframes](https://docs.streamlit.io/library/api-reference/data/st.dataframe) de pandas en streamlit; Tras verificar que la clave **historial** en sesión no esté vacía, creamos un dataframe y lo visualizamos en la aplicación:
+```py
+with tab_estadisticas:
+    # Comprobamos que haya historial guardado en sesión
+    if st.session_state.get('historial'):
+        # Creamos un dataframe con el historial guardado en sesión
+        df = pd.DataFrame(st.session_state.get('historial'))
+        # Sacamos los aciertos comparando la variable pred y real
+        df['acierto'] = df['pred'] == df['real']
+        ...
+        # Mostramos el dataframe
+        st.dataframe(df, use_container_width=True, hide_index=True, column_order=['archivo', 'pred', 'conf', 'real', 'fecha'])
+```
+**Streamlit** lo mostrará de esta manera:
+![alt text](img/dataframe.JPG)
+
+Podemos incluso manipular el dataframe agregándole una nueva variable **acierto** que compare si la predicción del modelo es igual al dígito real.
+
+Como ya hemos comentado en la pestaña **Ver dígitos**, **Streamlit** ofrece la posibilidad de visualizar [gráficos](https://docs.streamlit.io/library/api-reference/charts) interactivos sencillos. Podemos por ejemplo mostrar un [gráfico de líneas](https://docs.streamlit.io/library/api-reference/charts/st.line_chart) que represente la evolución de las confianzas en el eje del tiempo:
+```py
+# Gráfico de evolución de confianzas
+st.line_chart(df, x='fecha', y='conf')
+```
+
+Las posibilidades que ofrece **Streamlit** a nivel gráfico muy diversas. Para explorar todas las posibilidades aconsejo leer la documentación. Una de ellas puede ser contrastar en un gráfico de barras el número de predicciones de cada dígito frente a su porcentaje de aciertos:
+![alt text](img/porcentaje_aciertos_por_digito.JPG)
+
+Otra opción interesante sería graficar la matriz de confusión de las evaluaciones realizadas en sesión.
+
+### Página Secundaria. 1_Modelo.py
+En esta página secundaria podemos mostrar algún detalle del modelo como por ejemplo una muestra del dataset de entrenamiento y el detalle de la arquitectura.
+
+En esta página se mostrará todo el código del script **1_Modelo.py** incluido en la carpeta **pages**.
+
+Para hacer el efecto de **stream**, mediante el cual van apareciendo las letras una a una, utilizamos la función [**st.empty()**](https://docs.streamlit.io/library/api-reference/layout/st.empty). Cuando se emplea con la notación **with**, todo lo que se escriba dentro del bloque será sobrescrito. Para ello iteramos sobre todos los caracteres del detalle del modelo y vamos sobrescribiendo las frases aumentando un caracter cada vez. Podemos regular la velocidad de aparición con la función **time.sleep()**.
+```py
+def stream_model_info() -> None:
+    """Streamea la información del modelo"""
+    stream_container = st.empty()
+    with stream_container:
+        output = ""
+        for letter in get_model_summary():
+            output += letter
+            st.code(output)
+            time.sleep(0.01)
+```
+
+Para evitar que se le haga pesado al usuario, *streameamos* la información solo 1 vez por sesión. Para ello nos valemos de una *flag* que guardamos en sesión. Dentro de la función **main** escribimos lo siguientes:
+```py
+if st.session_state.get('session_flag') is None:
+    # Es la primera vez que entramos en la página modelo
+    # asi que streameamos la info del modelo
+    stream_model_info()
+    # Cambiamos la flag a True
+    st.session_state['session_flag'] = True
+else:
+    # No es la primera vez que entramos asi que
+    # mostramos todo directamente
+    print_model_info()
+```
+
+## Despliegue de la app.
+La jerarquía de archivos del proyecto debería ser algo similar a esto:
+```sh
+Carpeta Principal del proyecto
+├── .streamlit
+│   └── config.toml
+├── .git
+├── pages
+│   └── 1_Modelo.py
+├── models
+│   ├── __init__.py
+│   ├── convnet_mnist_104k_weights.h5
+│   └── convnet_model.py 
+└── Aplicacion.py
+```
+
+Una vez hayamos revisado el código y estemos satisfecho con el resultado general de la aplicación en local, es hora de desplegarla en [Streamlit Community Cloud](https://streamlit.io/cloud).
+
+**Streamlit** nos permite desplegar un número ilimitado de aplicaciones de forma pública. Saca el código de un repositorio de **GitHub** y lo despliega en sus servidores. **Streamlit** hace el proceso de despliegue realmente muy sencillo y rápido.
+Solo necesitaremos tener una cuenta en **Streamlit Community Cloud** y **Github**.
+
+Hecho esto, tenemos que indicar a las máquinas de streamlit qué dependencias tienen que instalar para correr la aplicación. Creamos el fichero **requirements.txt** y escribimos las librerías que hemos tenido que instalar en nuestro entorno virtual:
+```sh
+streamlit
+tensorflow
+numpy
+pandas
+Pillow
+matplotlib
+```
+
+Con un poco de código de terminal, podemos exportar del entorno virtual de conda las dependecias directamente a un archivo **requirements.txt**:
+```sh
+$ conda list -e | grep -v "^#" | awk -F'=' '{print $1 "==" $2}' > requirements.txt
+```
+
+Para proyectos complejos con muchas dependencias esto puede ser de utilidad, sin embargo para un proyecto sencilla no es recomendable.
+
+
 
 
 
