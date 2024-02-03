@@ -2,16 +2,17 @@
 
 En este artículo veremos cómo crear y desplegar una sencilla aplicación de reconocimiento de dígitos con **Streamlit**.
 
-## Un poco sobre mi.
+## Un poco sobre mi
 Mi nombre es Sergio Tejedor y soy un ingeniero industrial apasionado por el **Machine Learning**, la programación en **Python** y el desarrollo de aplicaciones. Actualmente soy director técnico de un grupo empresarial especializado en la laminación de perfiles en frío y fabricación de invernaderos industriales. Hace ya algo más de un año decidí dar el salto y ponerme a estudiar por mi cuenta programación. 
 
 Escogí **Python** como lenguaje por su suave curva de aprendizaje y por ser uno de los lenguajes más utilizados en la ciencia de datos y el **Machine Learning**. Al profundizar y descubrir la gran flexibilidad de este lenguaje de programación, de entre todas sus posibilidades, decidí centrarme en el campo del **Machine Learning** ya que es aquel que más sinergias podía tener con mi formación y profesión.
 
-## ¿ Por qué Streamlit ?
+## ¿Por qué Streamlit?
 Enseguida empecé a desarrollar aplicaciones y querer compartirlas con amigos. No tardé en descubrir el framework para Python [**Streamlit**](https://streamlit.io/). Siempre había encontrado dificultades a la hora de desplegar aplicaciones (y las sigo encontrando) y es precisamente este uno de los puntos fuertes de esta librería. **Streamlit** permite crear y desplegar aplicaciones web dinámicas en las que poder compartir y visualizar tus proyectos de ciencia de datos utilizando únicamente Python y sin necesidad de conocimiento profundo de tecnologías web. De forma rápida y muy sencilla. Mediante los widgets disponibles, se pueden cargar *archivos*, *visualizar gráficos*, *dataframes* y muchas cosas más.
 Tiene una comunidad creciente de usuarios y desarrolladores y una buena [documentación](https://docs.streamlit.io/library/api-reference) con ejemplos ilustrativos.
+**Streamlit** tiene limitaciones en cuanto a capacidad y rendimiento. El [tamaño máximo](https://docs.streamlit.io/streamlit-community-cloud/manage-your-app#app-resources-and-limits) de la aplicación permitido es de 1Gb. Quizás no sea la mejor opción si lo que necesitas es desplegar un proyecto a gran escala. Sin embargo, te permite compartir en cuestión de horas una pequeña aplicación.
 
-## Descripción de la app.
+## Descripción de la app
 Las posibilidades con **Streamlit** son casi ilimitadas pero hoy abordaremos el desarrollo de una aplicación de reconocimiento de dígitos. La aplicación está disponible [aquí](https://tutorial-kopuru.streamlit.app/).
 ![Alt text](img/aplicacion_view.JPG)
 La aplicación ofrece además la posibilidad de evaluar las predicciones del modelo y mostrar una serie de estadísticas.
@@ -44,10 +45,10 @@ La página principal, **Aplicación**, está organizada en **5 pestañas**:
 
 La única página secundaria, **Modelo**, tiene detalles del modelo entrenado. Al acceder a ella se muestran en forma de *'stream'* las capas y parámetros del modelo.
 
-## Desarrollo de la app.
-Crea un nuevo proyecto en tu editor de código favorito. Personalmente uso [**Visual Studio Code**](https://code.visualstudio.com/) para desarrollar mis aplicaciones ya que lo encuentro fácil de usar y muy personalizable. La gran cantidad de extensiones disponibles facilitan mucho el desarrollo del código.
+## Desarrollo de la app
+Crea un nuevo proyecto en tu editor de código favorito. Personalmente uso [**Visual Studio Code**](https://code.visualstudio.com/) para desarrollar mis aplicaciones ya que lo encuentro fácil de usar y muy personalizable. La gran cantidad de extensiones disponibles facilitan mucho el desarrollo del código. Además tiene **git** integrado en la interfaz.
 
-Crearemos el script **Aplicacion.py** que recogerá el código de la página principal y la carpeta **pages** con el archivo **1_Modelo.py** en su interior. Las aplicaciones multipágina en streamlit se configuran de este modo; una página inicial o principal en la ruta raiz del proyecto y todas las páginas secundarias deberán ir dentro de una carpeta **pages**. Es recomendable nombrar los scripts de las páginas secundarias con los prefijos 1_xx, 2_xx, 3_xx etc para que streamlit pueda reconocerlos correctamente.
+Crearemos el script **Aplicacion.py** que recogerá el código de la página principal y la carpeta **pages** con el archivo **1_Modelo.py** en su interior. Las aplicaciones multipágina en streamlit se configuran de este modo; una página inicial o principal en la ruta raiz del proyecto y todas las páginas secundarias deberán ir dentro de una carpeta **pages**. Es recomendable nombrar los scripts de las páginas secundarias con los prefijos 1_xx, 2_xx, 3_xx etc para que streamlit pueda reconocerlos correctamente y mostrarlos en el orden correspondiente.
 
 El siguiente paso es configurar un entorno virtual e instalar las dependencias necesarias. Para proyectos en los que utilizo algún tipo de modelo de deep learning con tensorflow tengo un entorno virtual llamado **tensorflow** creado con **conda** con todos los paquetes necesarios. Puedes crear el entorno virtual usando Python en su versión 3.9 con el siguiente comando en la terminal:
  ```sh
@@ -61,7 +62,10 @@ Para este proyecto concretamente instalaremos las siguientes dependencias:
 ```sh
 $ pip install streamlit tensorflow numpy pandas Pillow matplotlib
 ```
-Para realizar el despliegue de la aplicación una vez hayamos terminado su desarrollo, será necesario tener una cuenta en [**GitHub**](https://github.com/) y aunque pueda hacerse al final, suele ser aconsejable iniciar **git** en el proyecto e ir guardando los avances de la aplicación en tu repositorio de GitHub.
+Necesitaremos **tensorflow** para lanzar el modelo predictivo ya que ha sido entrenado con **Keras** que es una extensión de **tensorflow.
+Con **numpy** construiremos el array para alimentar el modelo. **Pandas** nos ayudará a manipular DataFrames en **Streamlit** y **matplotlib** a crear y visualizar gráficos. Finalmente **Pillow** es una librería para la manipulación de imágenes con Python y nos servirá para cargar la imagen del usuario.
+
+Para realizar el despliegue de la aplicación una vez hayamos terminado su desarrollo, será necesario tener una cuenta en [**GitHub**](https://github.com/) y aunque pueda hacerse al final, suele ser aconsejable iniciar **git** en el proyecto e ir guardando los avances de la aplicación en tu repositorio de **GitHub**.
 
 **Streamlit** permite configurar algunos temas para toda la aplicación. Esto se realiza con un archivo **config.toml** que debe insertarse en una carpeta **.streamlit** en la rama principal de tu proyecto.
 
@@ -76,6 +80,9 @@ base="dark" # o "light"
 textColor="#EEEDEB"
 font="sans serif"
 ```
+
+Puedes experimentar con los colores y fuentes para crear tu propio estilo.
+
 Hasta ahora, esta es la jerarquía de archivos de nuestro proyecto:
 ```sh
 Carpeta Principal del proyecto
@@ -98,10 +105,12 @@ Casi siempre estructuro el script en varios bloques ([PEP8](https://peps.python.
 3. Funciones auxiliares usadas en el script
 4. Función principal **main**
 5. Entry point de la app con:
-    ```py
-    if __name__ == '__main__':
-        main()
-    ```
+```py
+if __name__ == '__main__':
+    main()
+```
+
+Seguir la guía de buenas práctica de Python puede hacer tu código más legible y facilita el trabajo colaborativo.
 
 Para poder acceder a todas las funcionalidades necesitamos importar **streamlit** con el alias **st** (esto es por convención). Aprovechamos también para importar el resto de librerías que vamos a ir necesitando:
 ```py
@@ -140,20 +149,20 @@ with st.sidebar:
 ```
 
 Podemos agregar nuestra firma, una imagen o lo que nos plazca. **Streamlit** tiene varias posibilidades de [escritura](https://docs.streamlit.io/library/api-reference/text):
-- **st.markdown()** : permite agregar notación **markdown** y HTML si pasamos el argumento **unsafe_allow_html**.
-- **st.title()**
-- **st.header()**
-- **st.subheader()**
-- **st.caption()** : escribe texto en letra pequeña.
-- **st.code()** : escribe un bloque de código.
-- **st.text()** : escribe texto plano.
-- **st.latex()** : escribe texto formateado para expresiones matemáticas.
+- **st.markdown** : permite agregar notación **markdown** y HTML si pasamos el argumento **unsafe_allow_html**.
+- **st.title**
+- **st.header**
+- **st.subheader**
+- **st.caption** : escribe texto en letra pequeña.
+- **st.code** : escribe un bloque de código.
+- **st.text** : escribe texto plano.
+- **st.latex** : escribe texto formateado para expresiones matemáticas.
 
-Podemos cargar una imagen de la misma manera, con la función **st.image()** y especificando la ruta del archivo.
+Podemos cargar una imagen de la misma manera, con la función **st.image** y especificando la ruta del archivo.
 
 Una vez hayamos terminado con el título y la descripción de la aplicación, incorporaremos las diferentes pestañas tal y como hemos descrito en el apartado **Descripción de la app.**
 
-Para agregar una [pestaña](https://docs.streamlit.io/library/api-reference/layout/st.tabs), se sigue una lógica similar a la de la barra lateral. La función **st.tabs()** requiere de una lista como argumento que representa el nombre de las etiquetas de las pestañas. La función devuelve una tupla de igual longitud que la lista de nombres pasados.
+Para agregar una [pestaña](https://docs.streamlit.io/library/api-reference/layout/st.tabs), se sigue una lógica similar a la de la barra lateral. La función **st.tabs** requiere de una lista como argumento que representa el nombre de las etiquetas de las pestañas. La función devuelve una tupla de igual longitud que la lista de nombres pasados.
 ```py
 # Definimos las 5 tabs que tendrá nuestra app
 tab_cargar_imagen, tab_ver_digito, tab_predecir, \
@@ -161,21 +170,21 @@ tab_cargar_imagen, tab_ver_digito, tab_predecir, \
                                     'Predecir', 'Evaluar', 'Ver estadísticas'])
 ```
 
-Los objetos devueltos por la función **st.tabs()** pueden usarse con la notación **with** para incorporar elementos dentro de cada pestaña:
+Los objetos devueltos por la función **st.tabs** pueden usarse con la notación **with** para incorporar elementos dentro de cada pestaña:
 ```py
 with tab_cargar_imagen:
     st.write('''Carga tu imagen con el dígito dibujado. 
         Recuerda que debe ser una imagen de 28x28 píxeles.<br>El dígito debe estar
         dibujado en blanco sobre color negro.''', unsafe_allow_html=True)
 ```
-#### Pestaña Cargar imagen.
+#### Pestaña Cargar imagen
 En esta primera pestaña vamos a dar la posibilidad al usuario de cargar una imagen. Realizaremos las siguientes etapas:
 1. Guardar la imagen del usuario en una variable
 2. Transformar la imagen en un array de **numpy**
 3. Verificar que la imagen cumpla los parámetros requeridos para pasarla por nuestro modelo
 4. Guardamos el nombre del archivo en sesión y mostramos mensaje de éxito
 
-Para poder guardar el contenido de un archivo en una variable, streamlit pone a nuestra disposición la función **st.file_uploader()**. Al llamar a esta función, streamlit mostrará el widget de carga de archivos en la web.
+Para poder guardar el contenido de un archivo en una variable, streamlit pone a nuestra disposición la función **st.file_uploader**. Al llamar a esta función, streamlit mostrará el widget de carga de archivos en la web.
 ```py
 imagen_bruta = st.file_uploader(label='Sube tu dígito', type=["png","tif","jpg","bmp","jpeg"], on_change=reset_predictions)
 ```
@@ -204,7 +213,7 @@ if not valid_img:
     st.stop() # Lo que viene después del stop no se ejecutará.
 ```
 
-**Streamlit** también permite volver a ejecutar la aplicación con la función **st.rerun()**.
+**Streamlit** también permite volver a ejecutar la aplicación con la función **st.rerun**.
 
 Para poder guardar información de manera persistente y que sobreviva a las interacciones del usuario con la aplicación, streamlit pone a nuestra disposición [**st.session_state**](https://docs.streamlit.io/library/api-reference/session-state).
 
@@ -224,14 +233,14 @@ st.success('Imagen cargada correctamente.')
 ```
 
 **Streamlit** permite usar 4 tipos de [mensaje de estado](https://docs.streamlit.io/library/api-reference/status):
-- **st.error()** : muestra el mensaje sobre fondo rojo.
-- **st.warning()** : muestra el mensaje sobre fondo amarillo.
-- **st.info()** : muestra el mensaje sobre fondo azul.
-- **st.success()** : muestra el mensaje sobre fondo verde.
+- **st.error** : muestra el mensaje sobre fondo rojo.
+- **st.warning** : muestra el mensaje sobre fondo amarillo.
+- **st.info** : muestra el mensaje sobre fondo azul.
+- **st.success** : muestra el mensaje sobre fondo verde.
 
 Todos ellos tienen la posibilidad de incluir un icono en el mensaje.
 
-#### Pestaña Ver dígito.
+#### Pestaña Ver dígito
 Una vez terminada la implementación de la primera pestaña podemos pasar a la segunda. En esta pestaña simplemente mostraremos la imagen cargada por el usuario para poder visualizar el dígito.
 
 **Streamlit** incorpora funciones propias para visualizar varios tipos de [gráficos](https://docs.streamlit.io/library/api-reference/charts) y además también ofrece la posibilidad de visualizar gráficos realizados con **matplotlib**. Los gráficos propios de streamlit son interactivos mientras que aquellos realizados con librerías como matplotlib se visualizan como imágenes.
@@ -256,7 +265,7 @@ Para visualizar un gráfico de matplotlib en streamlit basta con pasarle el obje
 
 ![Alt text](img/ver_digito_2.JPG)
 
-#### Pestaña Predecir.
+#### Pestaña Predecir
 Dentro de la pestaña predecir es dónde se ejecutará el modelo pre-entrenado con la imagen cargada por el usuario. El flujo de información que seguiremos con el código es el siguiente:
 1. En primer lugar comprobamos si ya se ha lanzado una predicción. Para ello usaremos la misma técnica que en la pestaña precedente; comprobamos si existe una determinada clave en el diccionario de sesión **st.session_state**.
 2. Si se ha lanzado ya una predicción (es decir existe la clave buscada), simplemente la mostramos en la aplicación junto a la confianza de la predicción.
@@ -269,7 +278,7 @@ Dentro de la pestaña predecir es dónde se ejecutará el modelo pre-entrenado c
         4. Guardamos en sesión bajo la clave **ultima_prediccion** el dígito, la confianza y el nombre del archivo.
     3. Si no existe una imagen validada mostramos un mensaje al usuario.
 
-**Streamlit** ofrece un formato para mostrar [métricas](https://docs.streamlit.io/library/api-reference/data/st.metric) con la función **st.metric()**. Esta función muestra una columna con 3 valores: la etiqueta, un valor en letra grande y un incremento en rojo (negativo) o verde (positivo).
+**Streamlit** ofrece un formato para mostrar [métricas](https://docs.streamlit.io/library/api-reference/data/st.metric) con la función **st.metric**. Esta función muestra una columna con 3 valores: la etiqueta, un valor en letra grande y un incremento en rojo (negativo) o verde (positivo).
 ```py
 if (last_pred:=st.session_state.get('ultima_prediccion')) is not None:
     pred = last_pred['pred']
@@ -279,7 +288,7 @@ if (last_pred:=st.session_state.get('ultima_prediccion')) is not None:
 
 En esta aplicación he decidido arbitrariamente poner en negativo aquellas confianzas inferiores al 70%.
 
-Para mostrar un [botón](https://docs.streamlit.io/library/api-reference/widgets/st.button) en streamlit solo tenemos que llamar a la función **st.button()** con una etiqueta como argumento obligatorio que será el texto mostrado por el botón. Esta función devuelve **True** cuando el botón es pulsado por el usuario. En el código recogemos la salida del botón en la variable **predecir**.
+Para mostrar un [botón](https://docs.streamlit.io/library/api-reference/widgets/st.button) en streamlit solo tenemos que llamar a la función **st.button** con una etiqueta como argumento obligatorio que será el texto mostrado por el botón. Esta función devuelve **True** cuando el botón es pulsado por el usuario. En el código recogemos la salida del botón en la variable **predecir**.
 ```py
 if nombre_imagen:=st.session_state.get('imagen_cargada_y_validada'):
     # Mostramos el botón
@@ -310,7 +319,7 @@ if nombre_imagen:=st.session_state.get('imagen_cargada_y_validada'):
         }
 ```
 
-Para hacer la aplicación más dinámica y atractiva podemos añadir un [spinner](https://docs.streamlit.io/library/api-reference/status/st.spinner) que mostrará un mensaje de ejecución mientras se está ejecutando un determinado código. Para usar un spinner tenemos que utilizar la función **st.spinner()** como un gestor de contexto, con la notación **with**. Mientras se esté ejecutando el interior del bloque **with** se mostrará el spinner.
+Para mejorar la experiencia del usuario con el manejo de la aplicación podemos añadir un [spinner](https://docs.streamlit.io/library/api-reference/status/st.spinner) que proporciona un feedback visual mostrando un mensaje de ejecución mientras se está ejecutando un determinado bloque de código. Para usar un spinner tenemos que utilizar la función **st.spinner()** como un gestor de contexto, con la notación **with**. Mientras se esté ejecutando el interior del bloque **with** se mostrará el spinner.
 
 Para utilizar el modelo he seguido los siguientes pasos:
 1. Entrenar un modelo convolucional en otra plataforma y guardar sus **weights** (coeficientes) en disco. El modelo ha sido entrenado con el dataset MNIST.
@@ -327,10 +336,10 @@ Carpeta Principal
 ```
 
 En este punto es especialmente relevante destacar una característica de **Streamlit** para mejorar el rendimiento de las aplicaciones. Como ya hemos visto **Streamlit** ejecuta una y otra vez los scripts lo cual puede traducirse en un tiempos de espera largos si las funciones realizan tareas pesadas. Para solucionar este contratiempo, streamlit permite usar [*caching*](https://docs.streamlit.io/library/advanced-features/caching) mediante 2 funciones:
-- **st.cache_data()** : guarda información dentro de la sesión. Es la forma indicada cuando queremos guardar en caché serializable como str, int, float, DataFrame, list etc.
-- **st.cache_resource()** : guarda información entre sesiones y usuarios. Es la forma indicada de almacenar modelos de ML o conexiones a bases de datos.
+- **st.cache_data** : guarda información dentro de la sesión. Es la forma indicada cuando queremos guardar en caché serializable como str, int, float, DataFrame, list etc.
+- **st.cache_resource** : guarda información entre sesiones y usuarios. Es la forma indicada de almacenar modelos de ML o conexiones a bases de datos.
 
-Para nuestra aplicación, queremos evitar que en cada ejecución se cree el modelo y se carguen sus coeficientes. Podemos utilizar la función **st.cache_resource()** como decorador de la función que carga el modelo:
+Para nuestra aplicación, queremos evitar que en cada ejecución se cree el modelo y se carguen sus coeficientes. Podemos utilizar la función **st.cache_resource** como decorador de la función que carga el modelo:
 ```py
 @st.cache_resource()
 def load_model() -> keras.Model:
@@ -354,7 +363,7 @@ De esta manera el modelo estará disponible entre sesiones y usuarios.
 
 ![alt text](img/tab_predecir_ocho.JPG)
 
-#### Pestaña Evaluar.
+#### Pestaña Evaluar
 En esta pestaña daremos la oportunidad al usuario de decirle al modelo si ha acertado o no. También implementaremos la opción de guardar las evaluaciones para realizar estadísticas en la pestaña siguiente.
 
 El flujo de información será el siguiente:
@@ -367,10 +376,12 @@ El flujo de información será el siguiente:
     3. Añadimos el diccionario **ultima_prediccion** a una lista en sesión con la clave **historial**.
     4. Mostramos mensaje de éxito.
 
-La función **st.number_input()** nos permite recoger un [input](https://docs.streamlit.io/library/api-reference/widgets) numérico del usuario. Se le pueden pasar como argumentos el mínimo y el máximo. En nuestro caso el valor mínimo posible es el **0** y el máximo es el **9**.
+La función **st.number_input** nos permite recoger un [input](https://docs.streamlit.io/library/api-reference/widgets) numérico del usuario. Se le pueden pasar como argumentos el mínimo y el máximo. En nuestro caso el valor mínimo posible es el **0** y el máximo es el **9**.
 ```py
 digit = st.number_input('Marca el dígito que habías dibujado', min_value=0, max_value=9)
 ```
+
+Otra opción que ofrece **streamlit** para recoger un input numérico es el [**st.slider**](https://docs.streamlit.io/library/api-reference/widgets/st.slider). Funciona de manera similar a **st.number_input**.
 
 La clave **historial** es una lista en sesión que irá almacenando los diccionarios **ultima_prediccion** con la predicción, la confianza, el nombre del archivo, el dígito real y la fecha y hora cuando se pulsa el botón **guardar predicción**.
 ```py
@@ -405,10 +416,10 @@ De esta manera, cada vez que se ejecuta el script, si la clave **historial** no 
 
 ![alt text](img/pestaña_evaluar_con_digito.JPG)
 
-#### Pestaña Estadísticas.
+#### Pestaña Estadísticas
 En la pestaña **estadísticas** podemos mostrar todas las gráficas y métricas que se nos ocurran. Utilizaremos las evaluaciones guardadas en la clave **historial** de sesión para construir algunas gráficas.
 
-Con la función **st.dataframe()** podemos visualizar [dataframes](https://docs.streamlit.io/library/api-reference/data/st.dataframe) de pandas en streamlit; Tras verificar que la clave **historial** en sesión no esté vacía, creamos un dataframe y lo visualizamos en la aplicación:
+Con la función **st.dataframe** podemos visualizar [dataframes](https://docs.streamlit.io/library/api-reference/data/st.dataframe) de pandas en streamlit; Tras verificar que la clave **historial** en sesión no esté vacía, creamos un dataframe y lo visualizamos en la aplicación:
 ```py
 with tab_estadisticas:
     # Comprobamos que haya historial guardado en sesión
@@ -442,7 +453,7 @@ En esta página secundaria podemos mostrar algún detalle del modelo como por ej
 
 En esta página se mostrará todo el código del script **1_Modelo.py** incluido en la carpeta **pages**.
 
-Para hacer el efecto de **stream**, mediante el cual van apareciendo las letras una a una, utilizamos la función [**st.empty()**](https://docs.streamlit.io/library/api-reference/layout/st.empty). Cuando se emplea con la notación **with**, todo lo que se escriba dentro del bloque será sobrescrito. Para ello iteramos sobre todos los caracteres del detalle del modelo y vamos sobrescribiendo las frases aumentando un caracter cada vez. Podemos regular la velocidad de aparición con la función **time.sleep()**.
+Para hacer el efecto de **stream**, mediante el cual van apareciendo las letras una a una, utilizamos la función [**st.empty**](https://docs.streamlit.io/library/api-reference/layout/st.empty). Cuando se emplea con la notación **with**, todo lo que se escriba dentro del bloque será sobrescrito. Para ello iteramos sobre todos los caracteres del detalle del modelo y vamos sobrescribiendo las frases aumentando un caracter cada vez. Podemos regular la velocidad de aparición con la función **time.sleep**.
 ```py
 def stream_model_info() -> None:
     """Streamea la información del modelo"""
@@ -469,7 +480,7 @@ else:
     print_model_info()
 ```
 
-## Despliegue de la app.
+## Despliegue de la app
 La jerarquía de archivos del proyecto debería ser algo similar a esto:
 ```sh
 Carpeta Principal del proyecto
@@ -485,7 +496,7 @@ Carpeta Principal del proyecto
 └── Aplicacion.py
 ```
 
-Una vez hayamos revisado el código y estemos satisfecho con el resultado general de la aplicación en local, es hora de desplegarla en [Streamlit Community Cloud](https://streamlit.io/cloud).
+Una vez hayamos revisado el código y estemos satisfechos con el resultado general de la aplicación en local, es hora de [desplegarla](https://docs.streamlit.io/streamlit-community-cloud/deploy-your-app) en [Streamlit Community Cloud](https://streamlit.io/cloud).
 
 **Streamlit** nos permite desplegar un número ilimitado de aplicaciones de forma pública. Saca el código de un repositorio de **GitHub** y lo despliega en sus servidores. **Streamlit** hace el proceso de despliegue realmente muy sencillo y rápido.
 Solo necesitaremos tener una cuenta en **Streamlit Community Cloud** y **Github**.
@@ -505,7 +516,59 @@ Con un poco de código de terminal, podemos exportar del entorno virtual de cond
 $ conda list -e | grep -v "^#" | awk -F'=' '{print $1 "==" $2}' > requirements.txt
 ```
 
-Para proyectos complejos con muchas dependencias esto puede ser de utilidad, sin embargo para un proyecto sencilla no es recomendable.
+Para proyectos complejos con muchas dependencias esto puede ser de utilidad, sin embargo para un proyecto sencillo no es recomendable.
+
+Si aún no habías creado un nuevo repositorio en **Github** es hora de hacerlo. Ve a la pestaña **repositories** en tu cuenta y pincha sobre **New**. Agrega un nombre y pulsa **create repository**.
+Si has ido haciendo **commits** a medida que desarrollabas el proyecto solo te quedará asociar tu rama local con tu rama remota:
+```sh
+git add .
+git commit -m "desplegando la app"
+git remote add origin git@github.com:<tu_usuario>/<nombre_de_tu_repo>.git
+git push -u origin main
+```
+
+Si por el contrario aún no había iniciado **git**, deberás escribir en consola todos los comandos que te proporciona **GitHub** en la ayuda:
+```sh
+echo "# <nombre_de_tu_repo>" >> README.md # para crear un archivo README.md
+git init # Iniciar un repositorio en local
+git add . # Añadir todos los archivos al área de stage
+git commit -m "first commit" # Realizar una 'diapositiva' del proyecto
+git branch -M main # Opcional para renombrar la rama master a main (por convenio)
+git remote add origin git@github.com:<tu_usuario>/<nombre_de_tu_repo>.git # Añadir la rama remota
+git push -u origin main # Sincronizar las ramas remota y local
+```
+
+Ya solo queda la parte de **Streamlit Community Cloud**. Ve a [tu cuenta](https://share.streamlit.io/) y selecciona **New app**.
+![alt text](img/deploy_1_new_app.JPG)
+
+Selecciona el repositorio que acabas de crear, el archivo principal de tu aplicación y dale un nombre al subdominio.
+![alt text](img/deploy_2_choose_repo.JPG)
+
+Puedes configurar la versión de Python y algunas variables de entorno en la sección **Advanced settings**.
+![alt text](img/deploy_3_secrets.JPG)
+
+Una vez pulsado sobre **Deploy!**, la aplicación empezará a desplegarse. Puedes ver el avance en los logs del menú lateral.
+![alt text](img/deploy_5_installing_dependencies.JPG)
+
+Tras unos minutos y si todo ha ido bién, la aplicación estará lista para ser utilizada. Si has tenido algún error suele deberse a problemas al instalar las dependencias. Puedes consultar la [documentación](https://docs.streamlit.io/streamlit-community-cloud/deploy-your-app/app-dependencies) para más información.
+
+Las aplicaciones desplegadas en el cloud de **Streamlit** se desactivan tras un tiempo de inactividad de entre 2 y 3 días. Si la aplicación no ha recibido tránsito, los servidores apagan la aplicación y tocará volver a levantarla. Para ello simplemente pincha sobre el botón y la aplicación volverá a lanzarse.
+![alt text](img/app_inactiva.JPG)
+
+## Conclusiones
+Al finalizar este recorrido por el desarrollo y despliegue de una aplicación de reconocimiento de dígitos con **Streamlit**, hemos cubierto desde los aspectos más básicos de configuración y estructuración de nuestro proyecto, hasta la implementación de funcionalidades complejas y el despliegue en la nube. Este proceso no solo nos ha permitido apreciar la versatilidad y potencia de **Streamlit** como herramienta para el desarrollo rápido de aplicaciones web, sino que también nos ha ofrecido una ventana al fascinante mundo del **Machine Learning** y cómo puede ser accesible para desarrolladores de todos los niveles.
+
+**Streamlit** se destaca por su simplicidad y eficiencia, permitiendo a los desarrolladores centrarse en la lógica de sus aplicaciones sin preocuparse excesivamente por los detalles de la implementación web. La capacidad de transformar scripts de Python en aplicaciones web interactivas con mínimos esfuerzos es, sin duda, su mayor atractivo.
+
+La aplicación desarrollada demuestra cómo **Streamlit** facilita la integración de modelos de **Machine Learning**, permitiendo la interacción en tiempo real con el usuario final. Esto abre un abanico de posibilidades para la presentación de proyectos de ciencia de datos y la creación de herramientas educativas o de investigación.
+
+La integración directa de **Streamlit** con **GitHub** y su plataforma de **Cloud Community** simplifica enormemente el proceso de despliegue. Esto elimina barreras significativas para compartir y validar proyectos con una amplia audiencia, promoviendo así una cultura de colaboración y aprendizaje continuo.
+
+Este tutorial no solo ha sido un ejercicio técnico sino también una invitación a explorar nuevas formas de aplicar nuestros conocimientos de programación y Machine Learning. La accesibilidad de herramientas como **Streamlit** está democratizando la tecnología, permitiendo que más personas contribuyan al campo de la ciencia de datos y la inteligencia artificial con proyectos innovadores y creativos.
+
+Animamos a los lectores a no solo seguir este tutorial, sino a experimentar, modificar y mejorar la aplicación presentada. El aprendizaje práctico, acompañado de la curiosidad y la experimentación, es fundamental para el crecimiento profesional y personal en el campo tecnológico.
+
+En última instancia, el objetivo de este artículo es servir como punto de partida para que explores las posibilidades ilimitadas que **Streamlit** puede ofrecerte. Ya sea para fines educativos, profesionales o simplemente por el placer de crear algo nuevo, esperamos que este viaje haya encendido una chispa de inspiración para tus futuros proyectos.
 
 
 
