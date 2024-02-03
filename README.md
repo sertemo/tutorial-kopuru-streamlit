@@ -527,7 +527,7 @@ git remote add origin git@github.com:<tu_usuario>/<nombre_de_tu_repo>.git
 git push -u origin main
 ```
 
-Si por el contrario aún no había iniciado **git**, deberás escribir en consola todos los comandos que te proporciona **GitHub** en la ayuda:
+Si por el contrario aún no habías iniciado **git**, deberás escribir en consola todos los comandos que te proporciona **GitHub** en la ayuda:
 ```sh
 echo "# <nombre_de_tu_repo>" >> README.md # para crear un archivo README.md
 git init # Iniciar un repositorio en local
@@ -539,15 +539,19 @@ git push -u origin main # Sincronizar las ramas remota y local
 ```
 
 Ya solo queda la parte de **Streamlit Community Cloud**. Ve a [tu cuenta](https://share.streamlit.io/) y selecciona **New app**.
+
 ![alt text](img/deploy_1_new_app.JPG)
 
 Selecciona el repositorio que acabas de crear, el archivo principal de tu aplicación y dale un nombre al subdominio.
+
 ![alt text](img/deploy_2_choose_repo.JPG)
 
 Puedes configurar la versión de Python y algunas variables de entorno en la sección **Advanced settings**.
+
 ![alt text](img/deploy_3_secrets.JPG)
 
 Una vez pulsado sobre **Deploy!**, la aplicación empezará a desplegarse. Puedes ver el avance en los logs del menú lateral.
+
 ![alt text](img/deploy_5_installing_dependencies.JPG)
 
 Tras unos minutos y si todo ha ido bién, la aplicación estará lista para ser utilizada. Si has tenido algún error suele deberse a problemas al instalar las dependencias. Puedes consultar la [documentación](https://docs.streamlit.io/streamlit-community-cloud/deploy-your-app/app-dependencies) para más información.
