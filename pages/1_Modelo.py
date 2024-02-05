@@ -37,7 +37,7 @@ def print_model_info() -> None:
     """Printea toda la información del modelo"""
     st.code(get_model_summary())
 
-def main() -> None:
+def main_model() -> None:
     """Entry point de la app"""
 
     # Configuración de la app como función en streamlit_func
@@ -62,4 +62,4 @@ def main() -> None:
         print_model_info()
 
 if __name__ == '__main__':
-    main()
+    main_model()
