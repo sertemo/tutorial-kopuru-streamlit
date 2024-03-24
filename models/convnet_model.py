@@ -25,7 +25,7 @@ MODEL_PATH = Path('models')
 
 # Funciones
 @st.cache_resource()
-def load_model() -> keras.Model:
+def load_model(from_weights: bool = True) -> keras.Model:
     """Devuelve el modelo con los weights cargados.
 
     Returns
@@ -33,12 +33,16 @@ def load_model() -> keras.Model:
     keras.Model
         El modelo con los coeficientes integrados.
     """
-    # Construimos el modelo
-    model = build_model()
-    # Ruta a los weights del modelo
-    weights = MODEL_PATH / 'convnet_mnist_104k_weights.h5'
-    # Cargamos los weights
-    model.load_weights(weights, by_name=True)
+    if from_weights:
+        # Construimos el modelo
+        model = build_model()
+        # Ruta a los weights del modelo
+        weights = MODEL_PATH / 'convnet_mnist_104k_weights.h5'
+        # Cargamos los weights
+        model.load_weights(weights, by_name=True, skip_mismatch=True)
+    else:
+        model = keras.models.load_model('convnet_mnist_104k.keras')
+    
     return model
 
 def build_model() -> keras.Model:
