@@ -81,7 +81,8 @@ def get_model_summary() -> str:
     # Captura la salida de model.summary()
     stream = StringIO()
     model = load_model()
-    model.summary(print_fn=lambda x: stream.write(x + '\n'))
+    print_fn = lambda x: stream.write(x + '\n')
+    model.summary(print_fn=print_fn)
     summary_string = stream.getvalue()
     stream.close()
     return summary_string
